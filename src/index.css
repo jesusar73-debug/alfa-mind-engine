@@ -1,0 +1,76 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-bg: #0f172a;
+  --color-card: #172036;
+  --color-line: #263049;
+  --color-ink: #e2e8f0;
+  --color-muted: #94a3b8;
+  --color-sky: #38bdf8;
+  --color-indigo: #818cf8;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  overscroll-behavior: none;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  touch-action: manipulation;
+}
+
+.safe-top {
+  padding-top: max(env(safe-area-inset-top), 12px);
+}
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 12px);
+}
+
+/* Respiración: un ciclo lento de 10 s cuando no hay guía de la voz. */
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(0.72);
+    opacity: 0.55;
+  }
+  45%,
+  55% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+.breathe-idle {
+  animation: breathe 10s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathe-idle {
+    animation: none;
+  }
+  .orb {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+input[type='range'] {
+  accent-color: var(--color-sky);
+  height: 44px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-sky);
+  outline-offset: 2px;
+}

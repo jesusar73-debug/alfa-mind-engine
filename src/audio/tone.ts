@@ -13,7 +13,7 @@ export interface Tone {
 
 const CARRIER_HZ = 200;
 const BEAT_HZ = 10;
-const LEVEL = 0.22; // nivel interno: el tono va por debajo de la voz
+const LEVEL = 0.4; // nivel interno: audible en bocina de celular sin tapar la voz
 
 /**
  * Tono generado en vivo con Web Audio.

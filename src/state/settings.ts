@@ -18,7 +18,7 @@ export const SETTINGS_KEY = 'ame.settings.v1';
 
 export const DEFAULT_SETTINGS: Settings = {
   voiceVolume: 0.9,
-  toneVolume: 0.5,
+  toneVolume: 0.7,
   toneEnabled: true,
   toneMode: 'isocronico',
   interval: 2,

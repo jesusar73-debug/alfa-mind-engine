@@ -165,6 +165,10 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
     if (debugEnabled()) window.__ame = { clock: session, events: eventsRef.current, session, segments };
     session.onFinished = finish;
     session.onSuspended = () => setSuspendedNotice(true);
+    session.onExternalPause = () => {
+      setPaused(true);
+      setMediaState('paused');
+    };
     setStatus('loading');
     try {
       await session.load(setLoadPct);

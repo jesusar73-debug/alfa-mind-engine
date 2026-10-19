@@ -26,6 +26,7 @@ export class AudioSession implements Clock {
   private exitStarted = false;
   onFinished?: () => void;
   onSuspended?: () => void;
+  onExternalPause?: () => void;
 
   constructor(
     private segments: PlannedSegment[],
@@ -46,6 +47,10 @@ export class AudioSession implements Clock {
     this.player = new VoicePlayer(segments, settings.engine, settings.voiceVolume);
     this.player.onSegmentStart = (i) => this.handleSegment(i);
     this.player.onFinished = () => this.handleFinished();
+    this.player.onExternalPause = () => {
+      this.tone?.pause();
+      this.onExternalPause?.();
+    };
   }
 
   get totalDuration() {

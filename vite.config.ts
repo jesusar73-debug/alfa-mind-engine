@@ -42,6 +42,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,json,mp3,wav}'],
         maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
         cleanupOutdatedCaches: true,
+        // Toma control desde la primera visita (las actualizaciones siguen esperando al usuario).
+        clientsClaim: true,
         navigateFallback: 'index.html',
       },
     }),

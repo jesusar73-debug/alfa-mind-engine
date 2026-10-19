@@ -14,8 +14,12 @@ export class VoicePlayer {
   private urls: string[] = [];
   private index = 0;
   private finished = false;
+  /** true mientras la pausa la pidió la app (no el sistema). */
+  private ownPause = false;
   onSegmentStart?: (index: number) => void;
   onFinished?: () => void;
+  /** El sistema pausó la voz (llamada entrante, otra app tomó el audio…). */
+  onExternalPause?: () => void;
 
   constructor(
     readonly segments: PlannedSegment[],
@@ -26,6 +30,10 @@ export class VoicePlayer {
     for (const el of this.els) {
       el.preload = 'auto';
       el.addEventListener('ended', () => this.handleEnded(el));
+      el.addEventListener('play', () => (this.ownPause = false));
+      el.addEventListener('pause', () => {
+        if (el === this.current && !this.ownPause && !el.ended && !this.finished) this.onExternalPause?.();
+      });
     }
     if (engine === 'webaudio') {
       const { ctx, voice } = getMixer();
@@ -68,6 +76,7 @@ export class VoicePlayer {
   }
 
   pause(): void {
+    this.ownPause = true;
     this.current.pause();
   }
 
@@ -99,6 +108,7 @@ export class VoicePlayer {
     const target = this.segments.findIndex((s) => globalT < s.offset + s.duration);
     if (target < 0) return;
     const wasPlaying = !this.current.paused;
+    this.ownPause = true;
     this.current.pause();
     this.index = target;
     const el = this.current;

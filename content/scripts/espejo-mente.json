@@ -1,0 +1,22 @@
+{
+  "id": "espejo-mente",
+  "titulo": "Espejo de la Mente",
+  "frases": [
+    { "texto": "Imagina frente a ti un espejo amplio y limpio.", "pausa_ms": 3500 },
+    { "texto": "Piensa en una situación concreta que quieras mejorar. Solo una.", "pausa_ms": 5000 },
+    { "texto": "Deja que aparezca en el espejo, tal como es hoy.", "pausa_ms": 5000 },
+    { "texto": "Mírala con calma, como un observador tranquilo, sin juzgar.", "pausa_ms": 6000 },
+    { "texto": "Ya la reconociste. No necesitas mirarla más.", "pausa_ms": 3000 },
+    { "texto": "Ahora el espejo se cubre de un vapor suave, y esa imagen se difumina por completo.", "pausa_ms": 5000 },
+    { "texto": "Pasa la mano por el espejo y límpialo despacio.", "pausa_ms": 4500 },
+    { "texto": "Detrás del vapor aparece una imagen nueva: la situación ya resuelta, tal como deseas que sea.", "pausa_ms": 6000 },
+    { "texto": "Observa cada detalle de esa solución.", "pausa_ms": 5000 },
+    { "texto": "¿Qué ves?", "pausa_ms": 4000 },
+    { "texto": "¿Qué escuchas?", "pausa_ms": 4000 },
+    { "texto": "¿Cómo te sientes?", "pausa_ms": 5000 },
+    { "texto": "Haz la imagen más brillante. Más grande. Más cercana.", "pausa_ms": 5000 },
+    { "texto": "Siente la tranquilidad de saber que es posible.", "pausa_ms": 7000 },
+    { "texto": "De ahora en adelante, cuando pienses en este tema, recuerda primero esta imagen de solución.", "pausa_ms": 4000 },
+    { "texto": "Deja que el espejo se desvanezca con suavidad.", "pausa_ms": 3000 }
+  ]
+}

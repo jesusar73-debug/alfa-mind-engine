@@ -1,0 +1,18 @@
+{
+  "id": "salida",
+  "titulo": "Salida 1 a 5",
+  "frases": [
+    { "texto": "En un momento voy a contar del uno al cinco.", "pausa_ms": 1200 },
+    { "texto": "Al llegar a cinco abrirás los ojos, bien despierto, y sintiéndote muy bien.", "pausa_ms": 2000 },
+    { "texto": "Uno.", "pausa_ms": 800, "numero": 1 },
+    { "texto": "Empiezas a regresar con calma.", "pausa_ms": 1800 },
+    { "texto": "Dos.", "pausa_ms": 800, "numero": 2 },
+    { "texto": "Mueve suavemente los dedos de las manos y de los pies.", "pausa_ms": 1800 },
+    { "texto": "Tres.", "pausa_ms": 800, "numero": 3 },
+    { "texto": "Respira más profundo, llenándote de energía.", "pausa_ms": 1800 },
+    { "texto": "Cuatro.", "pausa_ms": 800, "numero": 4 },
+    { "texto": "Estás casi despierto, sereno y renovado.", "pausa_ms": 1800 },
+    { "texto": "Cinco.", "pausa_ms": 800, "numero": 5 },
+    { "texto": "Abre los ojos. Estás bien despierto, sintiéndote muy bien, mejor que antes.", "pausa_ms": 1500 }
+  ]
+}

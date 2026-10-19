@@ -1,0 +1,19 @@
+{
+  "id": "tres-dedos",
+  "titulo": "Técnica de los Tres Dedos",
+  "frases": [
+    { "texto": "Ahora vas a crear un gesto que te ayude a volver a este estado cuando lo necesites.", "pausa_ms": 3000 },
+    { "texto": "Junta con suavidad las yemas del pulgar, el índice y el dedo medio de una mano.", "pausa_ms": 4000 },
+    { "texto": "Siente el contacto. Ligero, sin apretar.", "pausa_ms": 3500 },
+    { "texto": "Mientras mantienes el gesto, nota la calma de tu cuerpo.", "pausa_ms": 4500 },
+    { "texto": "Nota tu respiración, lenta y profunda.", "pausa_ms": 4500 },
+    { "texto": "Nota tu mente, clara y enfocada.", "pausa_ms": 4500 },
+    { "texto": "Recuerda un momento en que aprendiste algo con facilidad, o en que todo fluyó bien.", "pausa_ms": 7000 },
+    { "texto": "Siente de nuevo esa seguridad, mientras sostienes los tres dedos juntos.", "pausa_ms": 6000 },
+    { "texto": "Este gesto queda unido a este estado de calma y enfoque.", "pausa_ms": 3500 },
+    { "texto": "Desde hoy, cuando juntes estos tres dedos y respires profundo, tu mente se calmará y se enfocará.", "pausa_ms": 4500 },
+    { "texto": "Puedes usarlo antes de estudiar, de una reunión, o de una conversación importante.", "pausa_ms": 4000 },
+    { "texto": "Repite en silencio: cuando uso este gesto, me concentro con facilidad.", "pausa_ms": 6000 },
+    { "texto": "Ahora suelta los dedos. El gesto queda guardado.", "pausa_ms": 3000 }
+  ]
+}

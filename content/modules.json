@@ -1,0 +1,44 @@
+{
+  "_comentario": "Orden de segmentos de cada sesión. 'countdown' se reemplaza por la cuenta del nivel (o 10 a 1 en herramientas) con el intervalo elegido. sleepOption activa 'dormir directamente': sin salida y fade lento del tono.",
+  "conditioning": {
+    "segments": ["intro", "countdown", "profundo", "salida"]
+  },
+  "tools": [
+    {
+      "id": "pantalla-mental",
+      "title": "Pantalla Mental",
+      "summary": "Visualización básica: proyecta imágenes en una pantalla imaginaria.",
+      "instructions": ["Siéntate con la espalda recta y los pies en el piso."],
+      "segments": ["intro", "countdown", "pantalla-mental", "salida"]
+    },
+    {
+      "id": "espejo-mente",
+      "title": "Espejo de la Mente",
+      "summary": "Observa una situación y cámbiala por la imagen de su solución.",
+      "instructions": ["Antes de empezar, elige UNA situación concreta que quieras mejorar."],
+      "segments": ["intro", "countdown", "espejo-mente", "salida"]
+    },
+    {
+      "id": "tres-dedos",
+      "title": "Técnica de los Tres Dedos",
+      "summary": "Crea un gesto ancla para volver a la calma y al enfoque.",
+      "instructions": ["Ten una mano libre para juntar pulgar, índice y medio."],
+      "segments": ["intro", "countdown", "tres-dedos", "salida"]
+    },
+    {
+      "id": "vaso-agua",
+      "title": "Técnica del Vaso de Agua",
+      "summary": "Programación antes de dormir. Termina sin despertarte.",
+      "instructions": [
+        "Llena un vaso con agua.",
+        "Piensa en tu pregunta o problema, en una frase.",
+        "Bebe la mitad del vaso mientras piensas en ella.",
+        "Deja el resto junto a la cama para beberlo al despertar.",
+        "Acuéstate e inicia la sesión."
+      ],
+      "segments": ["intro-acostado", "countdown", "vaso-agua", "vaso-dormir"],
+      "segmentsAwake": ["intro-acostado", "countdown", "vaso-agua", "salida"],
+      "sleepOption": true
+    }
+  ]
+}

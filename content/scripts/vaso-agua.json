@@ -1,0 +1,14 @@
+{
+  "id": "vaso-agua",
+  "titulo": "Técnica del Vaso de Agua",
+  "frases": [
+    { "texto": "Antes de acostarte, bebiste la mitad del vaso de agua pensando en tu pregunta.", "pausa_ms": 3500 },
+    { "texto": "Ahora, con los ojos cerrados, recuerda esa pregunta con claridad.", "pausa_ms": 5000 },
+    { "texto": "Dila en una frase sencilla, en silencio.", "pausa_ms": 7000 },
+    { "texto": "Dile a tu mente: mientras duermo, busco la respuesta que necesito.", "pausa_ms": 5000 },
+    { "texto": "Confía. Tu mente sigue trabajando mientras descansas.", "pausa_ms": 4500 },
+    { "texto": "Mañana, al despertar, beberás el resto del agua.", "pausa_ms": 3500 },
+    { "texto": "La respuesta puede llegar como una idea, un recuerdo, o una intuición durante el día.", "pausa_ms": 5000 },
+    { "texto": "Ahora suelta la pregunta. Ya está sembrada.", "pausa_ms": 5000 }
+  ]
+}

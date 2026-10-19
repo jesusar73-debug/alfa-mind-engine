@@ -1,0 +1,14 @@
+{
+  "_comentario": "Niveles de acondicionamiento. 'from' = número desde el que se cuenta. 'days' = sesiones completadas necesarias para avanzar (null = sin límite). Cambia 'days' y el tracker se ajusta solo. Si cambias 'from', vuelve a correr npm run build:audio.",
+  "levels": [
+    { "id": "n1", "name": "Nivel 1", "from": 100, "days": 10 },
+    { "id": "n2", "name": "Nivel 2", "from": 50, "days": 10 },
+    { "id": "n3", "name": "Nivel 3", "from": 25, "days": 10 },
+    { "id": "n4", "name": "Nivel 4", "from": 10, "days": 10 },
+    { "id": "n5", "name": "Nivel 5", "from": 5, "days": 10 },
+    { "id": "rapido", "name": "Rápido", "from": 3, "days": null }
+  ],
+  "intervals": [2, 3, 4],
+  "sayEvery": [1, 5],
+  "toolCountdownFrom": 10
+}

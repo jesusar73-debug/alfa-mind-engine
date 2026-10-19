@@ -1,0 +1,12 @@
+{
+  "id": "profundo",
+  "titulo": "Cierre del acondicionamiento",
+  "frases": [
+    { "texto": "Estás en un nivel de relajación profunda y agradable.", "pausa_ms": 2500 },
+    { "texto": "Cada vez que practicas, llegas aquí con más facilidad.", "pausa_ms": 2500 },
+    { "texto": "Tu mente está tranquila, clara y atenta.", "pausa_ms": 3000 },
+    { "texto": "Disfruta este silencio unos instantes.", "pausa_ms": 9000 },
+    { "texto": "Repite mentalmente: cada día me relajo mejor, y pienso con más claridad.", "pausa_ms": 5000 },
+    { "texto": "Guarda esta sensación. Puedes volver a ella cuando lo necesites.", "pausa_ms": 2500 }
+  ]
+}

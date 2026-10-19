@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dev-dist/
+.venv/
+.voices/
+.cache/
+samples/
+test-results/
+playwright-report/
+lighthouse/
+*.log

@@ -1,0 +1,25 @@
+{
+  "id": "intro-acostado",
+  "titulo": "Bienvenida, postura y respiración (acostado, antes de dormir)",
+  "frases": [
+    { "texto": "Te doy la bienvenida. Es hora de preparar la mente para descansar.", "pausa_ms": 1500 },
+    { "texto": "Acuéstate boca arriba, en una posición cómoda.", "pausa_ms": 2500 },
+    { "texto": "Deja los brazos a los lados del cuerpo, sueltos.", "pausa_ms": 2000 },
+    { "texto": "Cierra los ojos con suavidad.", "pausa_ms": 2000 },
+    { "texto": "Sin abrirlos, dirige la mirada un poco hacia arriba, como si miraras un punto en lo alto de tu frente.", "pausa_ms": 3000 },
+    { "texto": "Ahora vamos a respirar juntos, tres veces.", "pausa_ms": 1500 },
+    { "texto": "Inhala despacio por la nariz.", "pausa_ms": 4000, "respiracion": "inhala" },
+    { "texto": "Sostén el aire un momento.", "pausa_ms": 2000, "respiracion": "sostén" },
+    { "texto": "Y exhala lentamente, soltando todo el aire.", "pausa_ms": 4500, "respiracion": "exhala" },
+    { "texto": "Otra vez. Inhala profundo.", "pausa_ms": 4000, "respiracion": "inhala" },
+    { "texto": "Sostén.", "pausa_ms": 2000, "respiracion": "sostén" },
+    { "texto": "Exhala despacio. Suelta el día.", "pausa_ms": 4500, "respiracion": "exhala" },
+    { "texto": "Una última vez. Inhala.", "pausa_ms": 4000, "respiracion": "inhala" },
+    { "texto": "Sostén.", "pausa_ms": 2000, "respiracion": "sostén" },
+    { "texto": "Y exhala. Muy despacio.", "pausa_ms": 4500, "respiracion": "exhala" },
+    { "texto": "Muy bien. Tu respiración sigue sola, lenta y tranquila.", "pausa_ms": 2500 },
+    { "texto": "Siente cómo se aflojan la frente, los ojos y la mandíbula.", "pausa_ms": 3500 },
+    { "texto": "Tu cuerpo se vuelve pesado y se apoya por completo en la cama.", "pausa_ms": 3500 },
+    { "texto": "Cada respiración te lleva a un estado más calmado.", "pausa_ms": 2500 }
+  ]
+}

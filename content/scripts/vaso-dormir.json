@@ -1,0 +1,10 @@
+{
+  "id": "vaso-dormir",
+  "titulo": "Cierre para dormir (sin salida)",
+  "frases": [
+    { "texto": "Deja que tu cuerpo se hunda en la cama.", "pausa_ms": 5000 },
+    { "texto": "Cada respiración es más lenta. Más tranquila.", "pausa_ms": 7000 },
+    { "texto": "No necesitas hacer nada más.", "pausa_ms": 6000 },
+    { "texto": "Puedes quedarte dormido ahora, profundamente, y despertar descansado a la hora adecuada.", "pausa_ms": 10000 }
+  ]
+}

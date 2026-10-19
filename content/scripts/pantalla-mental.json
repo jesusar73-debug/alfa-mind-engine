@@ -1,0 +1,24 @@
+{
+  "id": "pantalla-mental",
+  "titulo": "Pantalla Mental",
+  "frases": [
+    { "texto": "Imagina frente a ti, un poco por encima de tus ojos, una gran pantalla.", "pausa_ms": 3500 },
+    { "texto": "Es amplia, luminosa, y está en blanco.", "pausa_ms": 3000 },
+    { "texto": "Proyecta en ella un objeto sencillo y conocido. Por ejemplo, una naranja.", "pausa_ms": 4000 },
+    { "texto": "Observa su color.", "pausa_ms": 3000 },
+    { "texto": "Su forma.", "pausa_ms": 2500 },
+    { "texto": "Su textura.", "pausa_ms": 3000 },
+    { "texto": "Hazla girar despacio, para verla por todos lados.", "pausa_ms": 5000 },
+    { "texto": "Ahora acércala, hasta que llene toda la pantalla.", "pausa_ms": 4000 },
+    { "texto": "Y aléjala, hasta que se vea pequeña.", "pausa_ms": 4000 },
+    { "texto": "Cambia su color por otro que te guste.", "pausa_ms": 5000 },
+    { "texto": "Muy bien. Borra la imagen y deja la pantalla en blanco otra vez.", "pausa_ms": 3500 },
+    { "texto": "Ahora proyecta un lugar donde te sientas en calma. Real o imaginario.", "pausa_ms": 5000 },
+    { "texto": "Mira los detalles. La luz. Los colores.", "pausa_ms": 5000 },
+    { "texto": "Escucha los sonidos de ese lugar.", "pausa_ms": 5000 },
+    { "texto": "Siente la temperatura del aire en tu piel.", "pausa_ms": 5000 },
+    { "texto": "Quédate ahí un momento, disfrutando.", "pausa_ms": 12000 },
+    { "texto": "Cada vez que usas tu pantalla mental, las imágenes son más claras y más fáciles de ver.", "pausa_ms": 3500 },
+    { "texto": "Deja que la pantalla se apague con suavidad.", "pausa_ms": 3000 }
+  ]
+}

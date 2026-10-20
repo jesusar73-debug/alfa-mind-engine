@@ -118,6 +118,26 @@ test('ajustes se guardan y cambian la sesión', async ({ page }) => {
   expect(ids).toEqual(['intro', 'cd-100-4-5', 'profundo', 'salida']);
 });
 
+test('llamada entrante: el sistema pausa y reanuda (iPhone) y la app lo sigue', async ({ page }) => {
+  await startSession(page, '/sesion/tool/pantalla-mental');
+  // Simula al sistema: pausa el <audio> directamente, sin pasar por la app.
+  const systemAudio = (action: 'pause' | 'play') =>
+    page.evaluate((a) => {
+      const p = window.__ame!.session!.player as unknown as { els: HTMLAudioElement[]; segmentIndex: number };
+      const el = p.els[p.segmentIndex % 2];
+      return a === 'pause' ? el.pause() : el.play();
+    }, action);
+  await systemAudio('pause');
+  await expect(page.getByTestId('pause')).toHaveText('Continuar');
+  await systemAudio('play');
+  await expect(page.getByTestId('pause')).toHaveText('Pausa');
+  // Pausa propia de la app sigue funcionando después.
+  await page.getByTestId('pause').click();
+  await expect(page.getByTestId('pause')).toHaveText('Continuar');
+  await page.getByTestId('pause').click();
+  await expect(page.getByTestId('pause')).toHaveText('Pausa');
+});
+
 test('vaso de agua: modo dormir no tiene salida 1→5', async ({ page }) => {
   await startSession(page, '/sesion/tool/vaso-agua');
   const ids = await page.evaluate(() => window.__ame!.segments.map((s) => s.id));

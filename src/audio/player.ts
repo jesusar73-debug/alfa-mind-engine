@@ -18,8 +18,12 @@ export class VoicePlayer {
   private ownPause = false;
   onSegmentStart?: (index: number) => void;
   onFinished?: () => void;
+  /** true si la última pausa la hizo el sistema y aún no se reanuda. */
+  private externalPause = false;
   /** El sistema pausó la voz (llamada entrante, otra app tomó el audio…). */
   onExternalPause?: () => void;
+  /** El sistema reanudó la voz por su cuenta (iPhone al colgar una llamada). */
+  onExternalResume?: () => void;
 
   constructor(
     readonly segments: PlannedSegment[],
@@ -30,9 +34,18 @@ export class VoicePlayer {
     for (const el of this.els) {
       el.preload = 'auto';
       el.addEventListener('ended', () => this.handleEnded(el));
-      el.addEventListener('play', () => (this.ownPause = false));
+      el.addEventListener('play', () => {
+        this.ownPause = false;
+        if (el === this.current && this.externalPause) {
+          this.externalPause = false;
+          this.onExternalResume?.();
+        }
+      });
       el.addEventListener('pause', () => {
-        if (el === this.current && !this.ownPause && !el.ended && !this.finished) this.onExternalPause?.();
+        if (el === this.current && !this.ownPause && !el.ended && !this.finished) {
+          this.externalPause = true;
+          this.onExternalPause?.();
+        }
       });
     }
     if (engine === 'webaudio') {
@@ -81,6 +94,7 @@ export class VoicePlayer {
   }
 
   resume(): Promise<void> {
+    this.externalPause = false;
     return this.current.play();
   }
 

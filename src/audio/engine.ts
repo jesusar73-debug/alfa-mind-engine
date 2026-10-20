@@ -27,6 +27,7 @@ export class AudioSession implements Clock {
   onFinished?: () => void;
   onSuspended?: () => void;
   onExternalPause?: () => void;
+  onExternalResume?: () => void;
 
   constructor(
     private segments: PlannedSegment[],
@@ -50,6 +51,11 @@ export class AudioSession implements Clock {
     this.player.onExternalPause = () => {
       this.tone?.pause();
       this.onExternalPause?.();
+    };
+    this.player.onExternalResume = () => {
+      if (settings.engine === 'webaudio') void getMixer().ctx.resume().catch(() => undefined);
+      this.tone?.resume();
+      this.onExternalResume?.();
     };
   }
 

@@ -169,6 +169,10 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
       setPaused(true);
       setMediaState('paused');
     };
+    session.onExternalResume = () => {
+      setPaused(false);
+      setMediaState('playing');
+    };
     setStatus('loading');
     try {
       await session.load(setLoadPct);

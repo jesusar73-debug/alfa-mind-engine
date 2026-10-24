@@ -103,6 +103,50 @@ test('exportar e importar respaldo JSON', async ({ page }, info) => {
   await expect(page.getByTestId('completed')).toHaveText('12');
 });
 
+/** Siembra N días completados (enero 2026) antes de cargar la app. */
+async function seedDays(page: import('@playwright/test').Page, n: number, startLevelId?: string) {
+  await page.addInitScript(
+    ([count, start]) => {
+      if (sessionStorage.getItem('seeded')) return;
+      sessionStorage.setItem('seeded', '1');
+      const days: Record<string, { levelId: string; at: string }> = {};
+      for (let i = 1; i <= count; i++) days[`2026-01-${String(i).padStart(2, '0')}`] = { levelId: 'n3', at: new Date(2026, 0, i).toISOString() };
+      localStorage.setItem('ame.progress.v1', JSON.stringify({ version: 1, days, tools: [], startLevelId: start }));
+    },
+    [n, startLevelId] as const,
+  );
+}
+
+test('nivel inicial: con 5 días hechos y Nivel 3 elegido, hoy toca Nivel 3 día 6', async ({ page }) => {
+  await seedDays(page, 5);
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Nivel 1' })).toBeVisible();
+  await page.getByRole('link', { name: /Elige tu nivel inicial/ }).click();
+
+  await page.getByRole('radio', { name: /Nivel 3/ }).click();
+  await expect(page.getByTestId('start-preview')).toHaveText('Hoy te toca: Nivel 3, día 6 de 10.');
+  await expect(page.getByText('Saltado')).toHaveCount(2);
+
+  // Se guarda: al recargar sigue en Nivel 3.
+  await page.reload();
+  await page.goto('/#/');
+  await expect(page.getByRole('heading', { name: 'Nivel 3' })).toBeVisible();
+  await expect(page.getByTestId('level-day')).toHaveText('Día 6 de 10');
+  await expect(page.getByText('25 → 1').first()).toBeVisible();
+  await expect(page.getByTestId('completed')).toHaveText('5');
+
+  // El botón principal abre la sesión de 25 → 1.
+  await page.getByRole('button', { name: 'Empezar sesión' }).click();
+  await expect(page.getByRole('heading', { name: 'Nivel 3 · 25 → 1' })).toBeVisible();
+});
+
+test('nivel inicial: al cumplir 10 días avanza solo al siguiente nivel', async ({ page }) => {
+  await seedDays(page, 10, 'n3');
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Nivel 4' })).toBeVisible();
+  await expect(page.getByTestId('level-day')).toHaveText('Día 1 de 10');
+});
+
 test('ajustes se guardan y cambian la sesión', async ({ page }) => {
   await page.goto('/#/ajustes');
   await page.getByRole('radio', { name: /4 s/ }).click();

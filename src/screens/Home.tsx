@@ -4,7 +4,7 @@ import { Button, Card } from '../components/ui';
 import { conditioningSpec, LEVELS, TOOLS, toolSpec } from '../data/content';
 import { minutesOf, useManifest } from '../data/useManifest';
 import { t } from '../i18n';
-import { completedCount, daysSinceLast, doneToday, positionFor, streak, useProgress } from '../state/progress';
+import { completedCount, currentPosition, daysSinceLast, doneToday, streak, useProgress } from '../state/progress';
 import { useSettings } from '../state/settings';
 import { navigate } from '../router';
 
@@ -49,7 +49,7 @@ function Conditioning() {
   const [showLevels, setShowLevels] = useState(false);
 
   const count = completedCount(progress);
-  const pos = positionFor(count);
+  const pos = currentPosition(progress);
   const today = doneToday(progress);
   const gap = daysSinceLast(progress);
   const spec = conditioningSpec(pos.level, settings.interval, settings.sayEvery);
@@ -86,6 +86,9 @@ function Conditioning() {
         <Button variant="primary" className="mt-4 w-full text-lg" onClick={() => navigate(`/sesion/acond/${pos.level.id}`)}>
           {today ? t('home.repeat') : t('home.start')}
         </Button>
+        <a href="#/progreso" className="mt-3 flex min-h-12 items-center justify-center text-sm text-muted underline-offset-4 active:underline">
+          {t('home.changeStart')}
+        </a>
       </Card>
 
       <div className="grid grid-cols-2 gap-3">

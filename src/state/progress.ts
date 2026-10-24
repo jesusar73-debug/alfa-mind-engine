@@ -14,6 +14,8 @@ export interface Progress {
   days: Record<string, Completion>;
   /** Sesiones de herramientas completadas (solo informativo). */
   tools: { id: string; at: string }[];
+  /** Nivel donde empieza el programa (para quien ya practicaba). Sin valor = Nivel 1. */
+  startLevelId?: string;
 }
 
 export const PROGRESS_KEY = 'ame.progress.v1';
@@ -70,13 +72,19 @@ export interface LevelPosition {
   programDay: number;
 }
 
+/** Índice del nivel inicial elegido (0 si no hay o ya no existe). */
+export function startLevelIndex(startLevelId: string | undefined, levels: Level[] = LEVELS): number {
+  return Math.max(0, levels.findIndex((l) => l.id === startLevelId));
+}
+
 /**
  * Nivel actual según sesiones COMPLETADAS, no según el calendario:
  * saltarse días no castiga; retomas donde quedaste.
+ * Todas las sesiones completadas cuentan desde el nivel inicial elegido.
  */
-export function positionFor(count: number, levels: Level[] = LEVELS): LevelPosition {
+export function positionFor(count: number, startLevelId?: string, levels: Level[] = LEVELS): LevelPosition {
   let start = 0;
-  for (let i = 0; i < levels.length; i++) {
+  for (let i = startLevelIndex(startLevelId, levels); i < levels.length; i++) {
     const lv = levels[i];
     if (lv.days === null || count < start + lv.days) {
       return { level: lv, levelIndex: i, dayInLevel: count - start + 1, levelDays: lv.days, programDay: count + 1 };
@@ -119,6 +127,15 @@ export function markConditioningComplete(levelId: string, now: Date = new Date()
   save({ ...current, days: { ...current.days, [key]: { levelId, at: now.toISOString() } } });
 }
 
+/** Posición actual del usuario en el programa. */
+export function currentPosition(p: Progress): LevelPosition {
+  return positionFor(completedCount(p), p.startLevelId);
+}
+
+export function setStartLevel(levelId: string): void {
+  save({ ...current, startLevelId: levelId });
+}
+
 export function markToolComplete(id: string, now: Date = new Date()): void {
   save({ ...current, tools: [...current.tools, { id, at: now.toISOString() }].slice(-500) });
 }
@@ -146,7 +163,8 @@ export function restoreBackup(text: string): { days: number } {
   for (const [k, v] of Object.entries(data.progress.days)) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(k) && v && typeof v.levelId === 'string') days[k] = v;
   }
-  save({ version: 1, days, tools: Array.isArray(data.progress.tools) ? data.progress.tools : [] });
+  const startLevelId = LEVELS.some((l) => l.id === data.progress!.startLevelId) ? data.progress.startLevelId : undefined;
+  save({ version: 1, days, tools: Array.isArray(data.progress.tools) ? data.progress.tools : [], startLevelId });
   if (data.settings) replaceSettings(data.settings);
   return { days: Object.keys(days).length };
 }

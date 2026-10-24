@@ -3,12 +3,13 @@ import { Calendar } from '../components/Calendar';
 import { Button, Card } from '../components/ui';
 import { LEVELS } from '../data/content';
 import { t } from '../i18n';
-import { completedCount, makeBackup, positionFor, restoreBackup, streak, useProgress } from '../state/progress';
+import { completedCount, currentPosition, makeBackup, restoreBackup, setStartLevel, startLevelIndex, streak, useProgress } from '../state/progress';
 
 export function ProgressScreen() {
   const progress = useProgress();
   const count = completedCount(progress);
-  const pos = positionFor(count);
+  const pos = currentPosition(progress);
+  const startIdx = startLevelIndex(progress.startLevelId);
   const fileRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -33,8 +34,6 @@ export function ProgressScreen() {
     }
   };
 
-  let cumulative = 0;
-
   return (
     <div className="space-y-4 pt-2">
       <h1 className="text-2xl font-semibold">{t('progress.title')}</h1>
@@ -58,24 +57,58 @@ export function ProgressScreen() {
       </Card>
 
       <Card>
+        <h2 className="text-sm uppercase tracking-widest text-indigo" id="start-level">
+          {t('progress.startTitle')}
+        </h2>
+        <p className="mt-2 text-sm text-muted">{t('progress.startHint')}</p>
+        <div role="radiogroup" aria-labelledby="start-level" className="mt-3 grid grid-cols-2 gap-2">
+          {LEVELS.map((lv, i) => {
+            const active = i === startIdx;
+            return (
+              <button
+                key={lv.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setStartLevel(lv.id)}
+                className={`min-h-14 rounded-2xl border px-3 py-2 text-left text-sm transition-colors ${
+                  active ? 'border-sky bg-sky/15 text-sky' : 'border-line bg-bg text-muted'
+                }`}
+              >
+                <span className="block font-medium">{lv.name}</span>
+                <span className="block text-xs opacity-80">{t('home.countdown', { from: lv.from })}</span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-3 rounded-2xl bg-sky/10 p-3 text-sm text-sky" data-testid="start-preview">
+          {t('progress.startPreview', {
+            level: pos.level.name,
+            day: pos.levelDays
+              ? t('home.dayOf', { day: pos.dayInLevel, total: pos.levelDays }).toLowerCase()
+              : t('home.dayFree', { day: pos.dayInLevel }).toLowerCase(),
+          })}
+        </p>
+      </Card>
+
+      <Card>
         <h2 className="mb-3 text-sm uppercase tracking-widest text-indigo">{t('progress.levels')}</h2>
         <ol className="space-y-3">
           {LEVELS.map((lv, i) => {
-            const start = cumulative;
-            cumulative += lv.days ?? 0;
-            const done = i < pos.levelIndex;
+            const skipped = i < startIdx;
+            const done = !skipped && i < pos.levelIndex;
             const current = i === pos.levelIndex;
-            const doneInLevel = done ? (lv.days ?? 0) : current ? count - start : 0;
+            const doneInLevel = done ? (lv.days ?? 0) : current ? pos.dayInLevel - 1 : 0;
             const pct = lv.days ? Math.min(100, (doneInLevel / lv.days) * 100) : current ? 100 : 0;
             return (
-              <li key={lv.id}>
+              <li key={lv.id} className={skipped ? 'opacity-50' : ''}>
                 <div className="flex justify-between text-sm">
                   <span className={current ? 'font-semibold text-sky' : done ? 'text-ink' : 'text-muted'}>
                     {lv.name} · {lv.from} → 1
                   </span>
                   <span className="text-muted">
-                    {done ? t('progress.levelDone') : current ? t('progress.levelCurrent') : ''}
-                    {lv.days ? ` ${Math.min(doneInLevel, lv.days)}/${lv.days}` : ''}
+                    {skipped ? t('progress.levelSkipped') : done ? t('progress.levelDone') : current ? t('progress.levelCurrent') : ''}
+                    {lv.days && !skipped ? ` ${Math.min(doneInLevel, lv.days)}/${lv.days}` : ''}
                   </span>
                 </div>
                 <div className="mt-1 h-2 overflow-hidden rounded-full bg-bg">

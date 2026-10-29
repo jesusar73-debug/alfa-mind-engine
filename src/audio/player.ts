@@ -1,25 +1,28 @@
+import { diag } from '../platform/diag';
 import { getMixer, setGain, sliderToGain } from './mixer';
 import type { EngineMode, PlannedSegment } from './types';
 
 /**
- * Reproduce los segmentos de voz de una sesión uno tras otro.
- * El reloj de la sesión ES el audio: offset del segmento + audio.currentTime.
+ * Reproduce la voz de una sesión como UN solo archivo continuo.
  *
- * Se usan dos <audio> alternados: mientras uno suena, el otro precarga el siguiente.
- * Los MP3 se leen como blob (desde el caché offline) para evitar problemas de
- * peticiones parciales (Range) con el service worker.
+ * Los segmentos (intro, cuenta, contenido, salida) son MP3 sin cabecera con el
+ * mismo formato, así que se unen byte a byte en un único Blob. Un solo <audio>
+ * y un solo archivo: no hay cambio de reproductor entre segmentos, que es
+ * justo lo que Android puede bloquear con la pantalla apagada.
+ *
+ * El reloj de la sesión ES el audio: audio.currentTime.
  */
 export class VoicePlayer {
-  private els: [HTMLAudioElement, HTMLAudioElement];
-  private urls: string[] = [];
+  private el: HTMLAudioElement;
+  private url: string | null = null;
   private index = 0;
   private finished = false;
   /** true mientras la pausa la pidió la app (no el sistema). */
   private ownPause = false;
-  onSegmentStart?: (index: number) => void;
-  onFinished?: () => void;
   /** true si la última pausa la hizo el sistema y aún no se reanuda. */
   private externalPause = false;
+  onSegmentStart?: (index: number) => void;
+  onFinished?: () => void;
   /** El sistema pausó la voz (llamada entrante, otra app tomó el audio…). */
   onExternalPause?: () => void;
   /** El sistema reanudó la voz por su cuenta (iPhone al colgar una llamada). */
@@ -30,30 +33,35 @@ export class VoicePlayer {
     readonly engine: EngineMode,
     slider: number,
   ) {
-    this.els = [new Audio(), new Audio()];
-    for (const el of this.els) {
-      el.preload = 'auto';
-      el.addEventListener('ended', () => this.handleEnded(el));
-      el.addEventListener('play', () => {
-        this.ownPause = false;
-        if (el === this.current && this.externalPause) {
-          this.externalPause = false;
-          this.onExternalResume?.();
-        }
-      });
-      el.addEventListener('pause', () => {
-        if (el === this.current && !this.ownPause && !el.ended && !this.finished) {
-          this.externalPause = true;
-          this.onExternalPause?.();
-        }
-      });
-    }
+    const el = new Audio();
+    this.el = el;
+    el.preload = 'auto';
+    el.addEventListener('ended', () => {
+      if (this.finished) return;
+      diag('voz: fin');
+      this.finished = true;
+      this.onFinished?.();
+    });
+    el.addEventListener('timeupdate', () => this.checkSegment());
+    el.addEventListener('play', () => {
+      this.ownPause = false;
+      if (this.externalPause) {
+        this.externalPause = false;
+        diag('voz: el sistema la reanudó');
+        this.onExternalResume?.();
+      }
+    });
+    el.addEventListener('pause', () => {
+      if (!this.ownPause && !el.ended && !this.finished) this.markExternalPause('el sistema la pausó');
+    });
+    el.addEventListener('stalled', () => diag(`voz: atascada en ${el.currentTime.toFixed(1)} s`));
+    el.addEventListener('error', () => diag(`voz: error ${el.error?.code ?? ''}`));
     if (engine === 'webaudio') {
       const { ctx, voice } = getMixer();
       setGain(voice, sliderToGain(slider), 0.01);
-      for (const el of this.els) ctx.createMediaElementSource(el).connect(voice);
+      ctx.createMediaElementSource(el).connect(voice);
     } else {
-      for (const el of this.els) el.volume = sliderToGain(slider);
+      el.volume = sliderToGain(slider);
     }
   }
 
@@ -62,50 +70,52 @@ export class VoicePlayer {
     return last.offset + last.duration;
   }
 
-  /** Descarga (o lee del caché) todos los audios. Lanza error si alguno falla. */
+  /** Descarga (o lee del caché) los segmentos y los une. Lanza error si alguno falla. */
   async load(baseUrl: string, onProgress?: (fraction: number) => void): Promise<void> {
     let done = 0;
-    this.urls = await Promise.all(
+    const parts = await Promise.all(
       this.segments.map(async (s) => {
         const res = await fetch(baseUrl + s.file);
         if (!res.ok) throw new Error(`HTTP ${res.status} en ${s.file}`);
         const blob = await res.blob();
         onProgress?.(++done / this.segments.length);
-        return URL.createObjectURL(blob);
+        return blob;
       }),
     );
-    this.els[0].src = this.urls[0];
-    if (this.urls[1]) this.els[1].src = this.urls[1];
-  }
-
-  private get current(): HTMLAudioElement {
-    return this.els[this.index % 2];
+    this.url = URL.createObjectURL(new Blob(parts, { type: 'audio/mpeg' }));
+    this.el.src = this.url;
+    diag(`voz: ${parts.length} segmentos unidos (${Math.round(this.totalDuration)} s)`);
   }
 
   async play(): Promise<void> {
     if (this.finished) return;
     this.onSegmentStart?.(this.index);
-    await this.current.play();
+    await this.el.play();
+    diag('voz: inicia');
   }
 
   pause(): void {
     this.ownPause = true;
-    this.current.pause();
+    this.el.pause();
   }
 
-  resume(): Promise<void> {
+  async resume(): Promise<void> {
     this.externalPause = false;
-    return this.current.play();
+    try {
+      await this.el.play();
+    } catch (e) {
+      this.markExternalPause(`no pudo reanudar (${(e as Error).name})`);
+      throw e;
+    }
   }
 
   get paused(): boolean {
-    return this.current.paused;
+    return this.el.paused;
   }
 
   /** Tiempo global de la sesión en segundos. */
   time(): number {
-    if (this.finished) return this.totalDuration;
-    return this.segments[this.index].offset + this.current.currentTime;
+    return this.finished ? this.totalDuration : this.el.currentTime;
   }
 
   get segmentIndex(): number {
@@ -114,53 +124,41 @@ export class VoicePlayer {
 
   setVolume(slider: number): void {
     if (this.engine === 'webaudio') setGain(getMixer().voice, sliderToGain(slider));
-    else for (const el of this.els) el.volume = sliderToGain(slider);
+    else this.el.volume = sliderToGain(slider);
   }
 
   /** Salta a un tiempo global (usado por las pruebas automáticas). */
   async seek(globalT: number): Promise<void> {
-    const target = this.segments.findIndex((s) => globalT < s.offset + s.duration);
-    if (target < 0) return;
-    const wasPlaying = !this.current.paused;
-    this.ownPause = true;
-    this.current.pause();
-    this.index = target;
-    const el = this.current;
-    el.src = this.urls[target];
-    await new Promise((r) => el.addEventListener('loadedmetadata', r, { once: true }));
-    el.currentTime = globalT - this.segments[target].offset;
-    const next = this.els[(target + 1) % 2];
-    if (this.urls[target + 1]) next.src = this.urls[target + 1];
-    this.onSegmentStart?.(target);
-    if (wasPlaying) await el.play();
+    if (this.el.readyState < 1) await new Promise((r) => this.el.addEventListener('loadedmetadata', r, { once: true }));
+    this.el.currentTime = globalT;
+    this.checkSegment();
   }
 
-  private handleEnded(el: HTMLAudioElement) {
-    if (el !== this.current || this.finished) return;
-    if (this.index + 1 >= this.segments.length) {
-      this.finished = true;
-      this.onFinished?.();
-      return;
+  /** Avisa cuando la reproducción entra a otro segmento (para el fade del tono). */
+  private checkSegment() {
+    const t = this.el.currentTime;
+    let i = this.segments.length - 1;
+    while (i > 0 && t < this.segments[i].offset) i--;
+    if (i !== this.index) {
+      this.index = i;
+      diag(`segmento ${i + 1}/${this.segments.length}: ${this.segments[i].id}`);
+      this.onSegmentStart?.(i);
     }
-    this.index++;
-    const next = this.current;
-    void next.play().catch(() => undefined);
-    this.onSegmentStart?.(this.index);
-    // Precarga el segmento siguiente en el elemento que acaba de terminar.
-    const upcoming = this.urls[this.index + 1];
-    if (upcoming) {
-      el.src = upcoming;
-      el.load();
-    }
+  }
+
+  private markExternalPause(reason: string) {
+    if (this.externalPause) return;
+    this.externalPause = true;
+    diag(`voz: ${reason} en ${this.el.currentTime.toFixed(1)} s`);
+    this.onExternalPause?.();
   }
 
   destroy(): void {
     this.finished = true;
-    for (const el of this.els) {
-      el.pause();
-      el.removeAttribute('src');
-      el.load();
-    }
-    this.urls.forEach((u) => URL.revokeObjectURL(u));
+    this.el.pause();
+    this.el.removeAttribute('src');
+    this.el.load();
+    if (this.url) URL.revokeObjectURL(this.url);
+    this.url = null;
   }
 }

@@ -125,6 +125,11 @@ export const es = {
       'Voz sintetizada con Piper TTS (voz es_AR “daniela”, entrenada con el corpus OpenSLR 61 de Google, licencia CC BY-SA 4.0).',
     version: 'Versión {v}',
     storage: 'Audio offline: {mb} MB',
+    diagTitle: 'Diagnóstico de la última sesión',
+    diagHint: 'Si el audio se corta, copia esto y pégalo en el chat.',
+    diagCopy: 'Copiar diagnóstico',
+    diagCopied: 'Copiado',
+    diagEmpty: 'Todavía no hay sesiones registradas.',
   },
   update: {
     available: 'Nueva versión disponible',

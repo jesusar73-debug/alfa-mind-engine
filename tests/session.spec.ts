@@ -167,8 +167,7 @@ test('llamada entrante: el sistema pausa y reanuda (iPhone) y la app lo sigue', 
   // Simula al sistema: pausa el <audio> directamente, sin pasar por la app.
   const systemAudio = (action: 'pause' | 'play') =>
     page.evaluate((a) => {
-      const p = window.__ame!.session!.player as unknown as { els: HTMLAudioElement[]; segmentIndex: number };
-      const el = p.els[p.segmentIndex % 2];
+      const el = (window.__ame!.session!.player as unknown as { el: HTMLAudioElement }).el;
       return a === 'pause' ? el.pause() : el.play();
     }, action);
   await systemAudio('pause');
@@ -180,6 +179,25 @@ test('llamada entrante: el sistema pausa y reanuda (iPhone) y la app lo sigue', 
   await expect(page.getByTestId('pause')).toHaveText('Continuar');
   await page.getByTestId('pause').click();
   await expect(page.getByTestId('pause')).toHaveText('Pausa');
+});
+
+test('25→1: la voz cruza de la intro a la cuenta sin detenerse (un solo archivo)', async ({ page }) => {
+  await startSession(page, '/sesion/acond/n3');
+  const cd = await page.evaluate(() => window.__ame!.segments.find((s) => s.id.startsWith('cd-'))!.offset);
+  await seek(page, cd - 3);
+  await page.waitForTimeout(6000);
+  const state = await page.evaluate(() => ({
+    t: window.__ame!.clock.time(),
+    paused: window.__ame!.session!.paused,
+  }));
+  expect(state.paused).toBe(false);
+  expect(state.t).toBeGreaterThan(cd + 2);
+  await expect(page.getByTestId('phase')).toHaveText('Cuenta regresiva');
+  await expect(page.getByTestId('pause')).toHaveText('Pausa');
+
+  // El diagnóstico registra el paso de segmento.
+  await page.goto('/#/acerca');
+  await expect(page.getByTestId('diag')).toContainText('segmento 2/4: cd-25-2-1');
 });
 
 test('vaso de agua: modo dormir no tiene salida 1→5', async ({ page }) => {

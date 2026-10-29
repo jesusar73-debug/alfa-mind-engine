@@ -1,4 +1,5 @@
 import { BASE_URL } from '../data/content';
+import { diag } from '../platform/diag';
 import type { Settings } from '../state/settings';
 import { getMixer } from './mixer';
 import { VoicePlayer } from './player';
@@ -39,6 +40,7 @@ export class AudioSession implements Clock {
       const { ctx } = getMixer();
       void ctx.resume();
       ctx.onstatechange = () => {
+        diag(`audio web: ${ctx.state}`);
         if (ctx.state !== 'running' && !this.player.paused) {
           void ctx.resume().catch(() => undefined);
           this.onSuspended?.();
@@ -94,7 +96,12 @@ export class AudioSession implements Clock {
   async resume() {
     if (this.settings.engine === 'webaudio') await getMixer().ctx.resume();
     this.tone?.resume();
-    await this.player.resume();
+    try {
+      await this.player.resume();
+    } catch (e) {
+      this.tone?.pause();
+      throw e;
+    }
   }
 
   get paused() {

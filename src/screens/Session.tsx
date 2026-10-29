@@ -8,6 +8,7 @@ import { conditioningSpec, flattenEvents, LEVELS, planSegments, TOOLS, toolSpec,
 import { useManifest } from '../data/useManifest';
 import { t, tl } from '../i18n';
 import { keepScreenOn, setMediaSession, setMediaState } from '../platform/device';
+import { diagStart } from '../platform/diag';
 import { navigate } from '../router';
 import { markConditioningComplete, markToolComplete, streak, useProgress } from '../state/progress';
 import { getSettings, useSettings } from '../state/settings';
@@ -119,8 +120,13 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
 
   const resume = useCallback(() => {
     const c = clockRef.current;
-    if (sessionRef.current) void sessionRef.current.resume();
-    else if (c instanceof VisualClock) c.resume();
+    if (sessionRef.current) {
+      // Si el sistema no deja reanudar, el botón vuelve a "Continuar".
+      sessionRef.current.resume().catch(() => {
+        setPaused(true);
+        setMediaState('paused');
+      });
+    } else if (c instanceof VisualClock) c.resume();
     setPaused(false);
     setMediaState('playing');
   }, []);
@@ -173,6 +179,7 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
       setPaused(false);
       setMediaState('playing');
     };
+    diagStart(spec.title);
     setStatus('loading');
     try {
       await session.load(setLoadPct);

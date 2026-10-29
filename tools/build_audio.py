@@ -37,6 +37,7 @@ LEAD_IN_S = 0.6              # silencio al inicio de cada archivo
 FADE_IN_S = 0.25
 FADE_OUT_S = 0.6
 NUMBER_FIT = 0.85            # un número debe durar <= 85 % del intervalo
+ENCODER_DELAY_S = 0.050       # retardo de LAME (1105 muestras a 22 050 Hz), medido con npm run verify:sync
 TRIM_DB = -45.0              # umbral para recortar silencio de cada frase
 TONE_SECONDS = 10            # loop del tono (plan B): ciclos enteros
 TONE_SR = 22050
@@ -216,18 +217,30 @@ def encode(seg: Segment) -> dict:
     write_wav(wav, audio, seg.sr)
     gain = TARGET_LUFS - measure_lufs(wav)
     mp3 = OUT / f"{seg.id}.mp3"
+    # MP3 "crudo" (sin ID3 ni cabecera Xing/LAME): así la app puede unir los
+    # segmentos de una sesión en un solo archivo continuo sin cortes.
     subprocess.run(
         ["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav),
          "-af", f"volume={gain:.2f}dB,alimiter=limit=0.89:level=false",
-         "-ac", "1", "-ar", str(seg.sr), "-c:a", "libmp3lame", "-b:a", BITRATE, str(mp3)],
+         "-ac", "1", "-ar", str(seg.sr), "-c:a", "libmp3lame", "-b:a", BITRATE,
+         "-write_xing", "0", "-id3v2_version", "0", "-write_id3v1", "0", str(mp3)],
         check=True,
     )
+    # Sin cabecera, el reproductor no recorta el retardo del codificador:
+    # la duración real es (cuadros × muestras por cuadro) y la voz se corre ENCODER_DELAY_S.
+    frames = int(subprocess.run(
+        ["ffprobe", "-v", "error", "-count_packets", "-select_streams", "a:0",
+         "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", str(mp3)],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip())
+    samples_per_frame = 1152 if seg.sr >= 32000 else 576
+    events = [{**e, "t": round(e["t"] + ENCODER_DELAY_S, 3)} if e["t"] > 0 else e for e in seg.events]
     return {
         "file": f"audio/{mp3.name}",
         "phase": seg.phase,
-        "duration": round(seg.length / seg.sr, 3),
+        "duration": round(frames * samples_per_frame / seg.sr, 4),
         "bytes": mp3.stat().st_size,
-        "events": seg.events,
+        "events": events,
     }
 
 

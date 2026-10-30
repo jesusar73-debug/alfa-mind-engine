@@ -16,7 +16,7 @@ test('funciona sin conexión después de la primera visita', async ({ page, cont
     }
   });
   const manifest = await page.evaluate(() => fetch('audio/manifest.json').then((r) => r.json()));
-  const expected = Object.keys(manifest.segments).length + 2; // + 2 tonos WAV
+  const expected = Object.keys(manifest.segments).length; // las ondas y el ambiente se generan en el teléfono
   await expect
     .poll(
       () =>
@@ -58,7 +58,7 @@ test('funciona sin conexión después de la primera visita', async ({ page, cont
       if (!r || !r.ok || (await r.blob()).size < 1000) bad.push(f);
     }
     return bad;
-  }, [...Object.values(manifest.segments).map((s) => (s as { file: string }).file), 'audio/tone-binaural.wav', 'audio/tone-isocronico.wav']);
+  }, [...Object.values(manifest.segments).map((s) => (s as { file: string }).file)]);
   expect(failures).toEqual([]);
 
   // Una sesión real suena offline (el reloj del audio avanza).

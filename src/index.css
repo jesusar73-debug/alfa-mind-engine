@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/figtree/wght.css';
+@import '@fontsource-variable/albert-sans/wght.css';
 
 /* Niebla de alba: la luz gris azulada antes del amanecer.
    Un fondo de niebla, una superficie un tono más clara, tinta azul petróleo y un solo acento.
@@ -23,7 +23,7 @@
   --color-stage-ink-0: #14262b;
   --color-stage-ink-1: #d4e6e8;
 
-  --font-sans: 'Figtree Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Albert Sans Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 

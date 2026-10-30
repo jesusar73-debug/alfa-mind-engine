@@ -77,7 +77,7 @@ export function Slider({
     <label className={`block ${disabled ? 'opacity-40' : ''}`}>
       <span className="flex justify-between text-[15px]">
         <span className="font-medium">{label}</span>
-        <span className="num text-muted">{Math.round(value * 100)} %</span>
+        <span className="num inline-block w-[3.6em] text-right text-muted">{Math.round(value * 100)} %</span>
       </span>
       <input
         type="range"

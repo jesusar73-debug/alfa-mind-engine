@@ -38,7 +38,7 @@ test('funciona sin conexión después de la primera visita', async ({ page, cont
   await expect(page.getByRole('heading', { level: 1, name: /Buen(os|as) (días|tardes|noches)/ })).toBeVisible();
   // La tipografía propia también sale del caché (si no, caería a la del sistema).
   await expect
-    .poll(() => page.evaluate(() => [...document.fonts].some((f) => f.family.includes('Figtree') && f.status === 'loaded')))
+    .poll(() => page.evaluate(() => [...document.fonts].some((f) => f.family.includes('Albert Sans') && f.status === 'loaded')))
     .toBe(true);
   for (const [hash, text] of [
     ['/herramientas', 'Pantalla Mental'],

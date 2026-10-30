@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Fraunces:opsz,wght,SOFT@9..144,300..500,100&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&family=Manrope:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600&family=Figtree:wght@300;400;500;600&family=Onest:wght@300;400;500;600&family=Fraunces:opsz,wght,SOFT@9..144,300..500,100&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&family=Manrope:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap">
 <style>
 /* Layout: una columna de lectura; cada estilo es una banda con tres teléfonos en fila
    (en el celular la fila se desliza de lado dentro de su propio marco). */
@@ -111,6 +111,17 @@ header p + p { margin-top: 10px; color: var(--muted); }
   --p-font: "Manrope", system-ui, sans-serif; --p-display: "Newsreader", Georgia, serif; --p-radius: 18px; --p-btn-radius: 16px; }
 .opt-a .greet, .opt-a .session .num, .opt-a .today .lvl b, .opt-a .mixer h3 { font-variation-settings: "SOFT" 100; }
 
+.fonts { display: grid; gap: 16px; }
+.fonts h2 { margin: 0; font: 500 26px/1.15 var(--font-ui); letter-spacing: -0.01em; }
+.fonts p.idea { margin: 0; max-width: 62ch; }
+.font-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.font-card { margin: 0; background: #e9eff0; color: #14262b; border-radius: 22px; padding: 22px; display: grid; gap: 6px; font-family: var(--f); }
+.font-card p { margin: 0; }
+.font-card .g { font-size: 30px; line-height: 1.08; letter-spacing: -0.02em; }
+.font-card .l { font-size: 38px; line-height: 1.1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.font-card .n { font-size: 96px; font-weight: 300; line-height: 1; letter-spacing: -0.04em; color: #eef6f7; background: #3b757d; border-radius: 16px; padding: 14px 18px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.font-card figcaption { font: 14px/1.45 var(--font-ui); color: #4b5f64; margin-top: 8px; }
+.font-card figcaption b { color: #14262b; font-weight: 600; margin-right: 4px; }
 footer { display: grid; gap: 8px; max-width: 62ch; }
 footer h2 { margin: 0; font: 500 22px/1.2 var(--font-ui); }
 footer p { margin: 0; }
@@ -125,6 +136,16 @@ footer p.muted { color: var(--muted); font-size: 14px; }
     <p>Tres direcciones para el rediseño. Las tres comparten una idea: <strong>el descenso</strong>. Durante la cuenta regresiva la pantalla se va oscureciendo número a número, como bajar a un nivel más profundo, y en la salida 1 → 5 vuelve a aclararse.</p>
     <p>Toca “Ver el descenso” en cada sesión para sentirlo. Desliza de lado para ver Inicio, Sesión y Mezclador. Los datos son de ejemplo (Nivel 3, día 6).</p>
   </header>
+
+  <section class="fonts" aria-labelledby="h-fonts">
+    <div class="option-head"><h2 id="h-fonts">Elegiste A. Ahora, la tipografía</h2></div>
+    <p class="idea">La app ya está publicada con la <strong>1, Figtree</strong>. Compárala con otras dos sans serif en el saludo, el nivel y el número de la cuenta.</p>
+    <div class="font-grid">
+      <figure class="font-card" style="--f: 'Figtree', system-ui, sans-serif"><p class="g">Buenos días</p><p class="l">25 → 1</p><p class="n">17</p><figcaption><b>1 · Figtree</b> Amable y abierta. La actual.</figcaption></figure>
+      <figure class="font-card" style="--f: 'Albert Sans', system-ui, sans-serif"><p class="g">Buenos días</p><p class="l">25 → 1</p><p class="n">17</p><figcaption><b>2 · Albert Sans</b> Más geométrica y serena.</figcaption></figure>
+      <figure class="font-card" style="--f: 'Onest', system-ui, sans-serif"><p class="g">Buenos días</p><p class="l">25 → 1</p><p class="n">17</p><figcaption><b>3 · Onest</b> Más redonda y suave.</figcaption></figure>
+    </div>
+  </section>
 
   <section class="option opt-a" data-opt="a" aria-labelledby="h-a">
     <div class="option-head"><span class="letter">A</span><h2 id="h-a">Niebla de alba</h2></div>

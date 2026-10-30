@@ -2,6 +2,8 @@ export type Phase = 'intro' | 'countdown' | 'content' | 'exit';
 
 export type TimelineEvent =
   | { t: number; kind: 'phase'; value: Phase }
+  /** Nombre de la fase de una rutina (p. ej. Sintonía 10: “Descenso a alfa”). */
+  | { t: number; kind: 'chapter'; value: string }
   | { t: number; kind: 'say'; text: string; dur?: number }
   | { t: number; kind: 'breath'; value: 'inhala' | 'sostén' | 'exhala'; dur: number }
   | { t: number; kind: 'number'; value: number; spoken: boolean };

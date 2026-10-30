@@ -121,24 +121,58 @@ class Segment:
         return np.concatenate(self.parts) if self.parts else np.zeros(1, np.float32)
 
 
+def add_frase(seg: Segment, frase: dict) -> None:
+    """Agrega una frase y su pausa, con sus eventos (texto, respiración, número)."""
+    clip = synth(frase.get("voz", frase["texto"]))  # "voz": cómo pronunciarlo si difiere del texto
+    start = seg.t()
+    dur = clip.size / seg.sr
+    pause = frase.get("pausa_ms", 0) / 1000
+    seg.events.append({"t": start, "kind": "say", "text": frase["texto"], "dur": round(dur, 3)})
+    if "respiracion" in frase:
+        seg.events.append({"t": start, "kind": "breath", "value": frase["respiracion"],
+                           "dur": round(dur + pause, 3)})
+    if "numero" in frase:
+        seg.events.append({"t": start, "kind": "number", "value": frase["numero"], "spoken": True})
+    seg.add(clip)
+    seg.silence(pause)
+
+
 def build_script(script_id: str, phase: str) -> Segment:
     data = json.loads((SCRIPTS / f"{script_id}.json").read_text(encoding="utf-8"))
     seg = Segment(script_id, phase, sample_rate())
     seg.silence(LEAD_IN_S)
+    if "fases" in data:
+        return build_phased(seg, data)
     seg.events.append({"t": 0, "kind": "phase", "value": phase})
     for frase in data["frases"]:
-        clip = synth(frase["texto"])
-        start = seg.t()
-        dur = clip.size / seg.sr
-        pause = frase.get("pausa_ms", 0) / 1000
-        seg.events.append({"t": start, "kind": "say", "text": frase["texto"], "dur": round(dur, 3)})
-        if "respiracion" in frase:
-            seg.events.append({"t": start, "kind": "breath", "value": frase["respiracion"],
-                               "dur": round(dur + pause, 3)})
-        if "numero" in frase:
-            seg.events.append({"t": start, "kind": "number", "value": frase["numero"], "spoken": True})
-        seg.add(clip)
-        seg.silence(pause)
+        add_frase(seg, frase)
+    return seg
+
+
+def build_phased(seg: Segment, data: dict) -> Segment:
+    """Rutina con fases de inicio y fin fijos (p. ej. Sintonía 10).
+
+    Cada fase empieza en su segundo exacto; "resto" rellena con silencio hasta su fin.
+    Si la voz de una fase se pasa de su fin, la siguiente empieza al terminar la voz (se avisa).
+    """
+    for fase in data["fases"]:
+        start = fase["inicio_s"]
+        first = fase is data["fases"][0]
+        if first:
+            pass  # la primera fase empieza tras el breve silencio inicial del archivo
+        elif seg.t() > start + 0.01:
+            print(f"  AVISO {seg.id}: la fase '{fase['id']}' empieza {seg.t() - start:.1f} s tarde")
+        else:
+            seg.pad_to(start)
+        t = 0 if first else seg.t()
+        seg.events.append({"t": t, "kind": "phase", "value": fase["fase"]})
+        seg.events.append({"t": t, "kind": "chapter", "value": fase["nombre"]})
+        for frase in fase["frases"]:
+            add_frase(seg, frase)
+        if seg.t() > fase["fin_s"] + 0.01:
+            print(f"  AVISO {seg.id}: la voz de '{fase['id']}' termina {seg.t() - fase['fin_s']:.1f} s después de su fin")
+        elif fase.get("resto"):
+            seg.pad_to(fase["fin_s"])
     return seg
 
 

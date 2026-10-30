@@ -42,7 +42,7 @@ def onset(audio: np.ndarray, sr: int, t: float) -> float | None:
 
 def main() -> None:
     manifest = json.loads((AUDIO / "manifest.json").read_text(encoding="utf-8"))
-    ids = sys.argv[1:] or [k for k in manifest["segments"] if k.startswith("cd-")]
+    ids = sys.argv[1:] or [k for k, s in manifest["segments"].items() if any(e["kind"] == "number" and e.get("spoken") for e in s["events"])]
     worst_all = 0.0
     failed = False
     for sid in ids:

@@ -30,17 +30,26 @@ export class AudioSession implements Clock {
   private ambientKind: AmbientKind;
   private exitStarted = false;
   private ended = false;
+  /** Las ondas ya sonando (en Sintonía 10 entran a los 2:00). */
+  private toneLive = false;
+  /** Segundo global en que empieza la salida 1→5 (fade de ondas y ambiente). */
+  private readonly exitAt: number;
   onFinished?: () => void;
   onSuspended?: () => void;
   onExternalPause?: () => void;
   onExternalResume?: () => void;
 
   constructor(
-    private segments: PlannedSegment[],
+    segments: PlannedSegment[],
     private settings: Settings,
     private sleep: boolean,
+    private timing: { toneStartAt?: number; bedFadeOutS?: number } = {},
   ) {
     this.ambientKind = settings.ambient;
+    this.exitAt = Math.min(
+      Infinity,
+      ...segments.flatMap((sg) => sg.events.filter((e) => e.kind === 'phase' && e.value === 'exit').map((e) => sg.offset + e.t)),
+    );
     if (settings.engine === 'webaudio') {
       const { ctx } = getMixer();
       void ctx.resume();
@@ -53,7 +62,7 @@ export class AudioSession implements Clock {
       };
     }
     this.player = new VoicePlayer(segments, settings.engine, settings.voiceVolume);
-    this.player.onSegmentStart = (i) => this.handleSegment(i);
+    this.player.onTime = (t) => this.handleTime(t);
     this.player.onFinished = () => this.handleFinished();
     this.player.onExternalPause = () => {
       this.beds((b) => b.pause());
@@ -68,7 +77,7 @@ export class AudioSession implements Clock {
 
   /** Aplica algo a los canales de fondo (ondas y ambiente). */
   private beds(fn: (b: Tone | Ambient) => void) {
-    if (this.tone) fn(this.tone);
+    if (this.tone && this.toneLive) fn(this.tone);
     if (this.ambient) fn(this.ambient);
   }
 
@@ -104,7 +113,10 @@ export class AudioSession implements Clock {
         this.settings.engine === 'webaudio'
           ? new LiveTone(this.settings.toneMode, this.settings.toneVolume, this.settings.beat)
           : new LoopTone(this.toneUrl!, this.settings.toneVolume);
-      this.tone.start(BED_FADE_IN_S);
+      // Se arma en silencio ahora (dentro del toque en Iniciar) aunque entre más tarde:
+      // así nunca hay que arrancar un reproductor nuevo con la pantalla apagada.
+      this.tone.prime?.();
+      if (!this.timing.toneStartAt) this.startTone();
     }
     this.ambient = await this.makeAmbient(this.ambientKind);
     this.ambient?.start(BED_FADE_IN_S);
@@ -138,7 +150,7 @@ export class AudioSession implements Clock {
 
   /** Estado de la mezcla (para el diagnóstico y las pruebas). */
   mixState() {
-    return { ambient: this.ambientKind, ambientOn: this.ambient !== null, toneOn: this.tone !== null };
+    return { ambient: this.ambientKind, ambientOn: this.ambient !== null, toneOn: this.tone !== null, toneLive: this.toneLive, exitStarted: this.exitStarted };
   }
 
   setVoiceVolume(v: number) {
@@ -182,10 +194,22 @@ export class AudioSession implements Clock {
     this.cleanup();
   }
 
-  private handleSegment(i: number) {
-    if (this.segments[i].phase === 'exit' && !this.exitStarted) {
+  private startTone() {
+    if (!this.tone || this.toneLive || this.exitStarted) return;
+    this.toneLive = true;
+    this.tone.start(BED_FADE_IN_S);
+    if (this.player.paused) this.tone.pause();
+    diag('ondas: entran');
+  }
+
+  /** Se llama con el avance del audio (también con la pantalla apagada). */
+  private handleTime(t: number) {
+    if (this.ended) return;
+    if (!this.toneLive && this.timing.toneStartAt && t >= this.timing.toneStartAt) this.startTone();
+    if (!this.exitStarted && t >= this.exitAt) {
       this.exitStarted = true;
-      this.beds((b) => b.stop(BED_FADE_OUT_EXIT_S));
+      this.beds((b) => b.stop(this.timing.bedFadeOutS ?? BED_FADE_OUT_EXIT_S));
+      diag('salida: ondas y ambiente se apagan');
     }
   }
 

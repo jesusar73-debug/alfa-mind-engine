@@ -1,0 +1,122 @@
+{
+  "id": "sintonia-10",
+  "titulo": "Sintonía 10",
+  "_comentario": "Rutina de 10 minutos en 6 fases con inicio y fin fijos. Cada fase narra desde su inicio; 'resto': true rellena con silencio hasta su fin. Si la voz de una fase tarda más, la siguiente empieza al terminar la voz. 'voz' (opcional) es cómo debe pronunciarlo la voz cuando difiere del texto en pantalla. Guion del documento 'Alfa Mind Engine — plan de cambios', con ajustes de género neutro.",
+  "fases": [
+    {
+      "id": "anclaje",
+      "nombre": "Anclaje",
+      "fase": "intro",
+      "inicio_s": 0,
+      "fin_s": 120,
+      "resto": true,
+      "frases": [
+        { "texto": "Te doy la bienvenida. Durante los próximos diez minutos vas a sintonizar tu mente.", "pausa_ms": 1000 },
+        { "texto": "Acomódate, con la espalda apoyada y los audífonos puestos.", "pausa_ms": 4000 },
+        { "texto": "Cierra los ojos.", "pausa_ms": 4000 },
+        { "texto": "Inhala suavemente por la nariz, contando hasta cuatro.", "pausa_ms": 4000, "respiracion": "inhala" },
+        { "texto": "Y exhala despacio por la boca, contando hasta seis.", "pausa_ms": 6000, "respiracion": "exhala" },
+        { "texto": "Otra vez. Inhala.", "pausa_ms": 4000, "respiracion": "inhala" },
+        { "texto": "Exhala, soltando todo el cuerpo.", "pausa_ms": 6000, "respiracion": "exhala" },
+        { "texto": "Una vez más. Inhala.", "pausa_ms": 4000, "respiracion": "inhala" },
+        { "texto": "Exhala.", "pausa_ms": 6000, "respiracion": "exhala" },
+        { "texto": "Ahora deja que la respiración encuentre su propio ritmo.", "pausa_ms": 1000 },
+        { "texto": "Siente tu cuerpo como un instrumento que vibra: cada latido, cada respiración, es un ritmo.", "pausa_ms": 6000 },
+        { "texto": "Con cada exhalación, los hombros bajan, la mandíbula se afloja, y el ritmo se vuelve lento y parejo.", "pausa_ms": 0 }
+      ]
+    },
+    {
+      "id": "descenso",
+      "nombre": "Descenso a alfa",
+      "fase": "countdown",
+      "inicio_s": 120,
+      "fin_s": 240,
+      "resto": true,
+      "frases": [
+        { "texto": "Ahora vas a descender a un nivel más profundo de relajación.", "pausa_ms": 1000 },
+        { "texto": "Voy a contar de diez a uno, y con cada número te relajas el doble.", "pausa_ms": 5000 },
+        { "texto": "Diez.", "pausa_ms": 6000, "numero": 10 },
+        { "texto": "Nueve.", "pausa_ms": 6000, "numero": 9 },
+        { "texto": "Ocho.", "pausa_ms": 6000, "numero": 8 },
+        { "texto": "Siete, más profundo.", "pausa_ms": 6000, "numero": 7 },
+        { "texto": "Seis.", "pausa_ms": 6000, "numero": 6 },
+        { "texto": "Cinco, a mitad del camino.", "pausa_ms": 6000, "numero": 5 },
+        { "texto": "Cuatro.", "pausa_ms": 6000, "numero": 4 },
+        { "texto": "Tres.", "pausa_ms": 6000, "numero": 3 },
+        { "texto": "Dos.", "pausa_ms": 6000, "numero": 2 },
+        { "texto": "Uno.", "pausa_ms": 8000, "numero": 1 },
+        { "texto": "Estás en un estado profundo y tranquilo.", "pausa_ms": 1000 },
+        { "texto": "Tu cuerpo y tu mente se mueven ahora en un ritmo lento y sereno.", "pausa_ms": 8000 },
+        { "texto": "Quédate aquí.", "pausa_ms": 0 }
+      ]
+    },
+    {
+      "id": "importancia",
+      "nombre": "Soltar la importancia",
+      "fase": "content",
+      "inicio_s": 240,
+      "fin_s": 330,
+      "resto": true,
+      "frases": [
+        { "texto": "Ahora vas a soltar el peso de lo que quieres lograr.", "pausa_ms": 3000 },
+        { "texto": "Piensa en algo que quieres en tu vida.", "pausa_ms": 1000 },
+        { "texto": "Nota cuánto pesa en tu pecho y en tu estómago.", "pausa_ms": 8000 },
+        { "texto": "Ahora repite mentalmente: esto es una dirección, no una necesidad.", "pausa_ms": 8000 },
+        { "texto": "Mi valor no depende del resultado.", "pausa_ms": 8000 },
+        { "texto": "Puedo trabajar por esto y, al mismo tiempo, estar en paz.", "pausa_ms": 8000 },
+        { "texto": "Si algo se tensa en tu cuerpo, exhala y suéltalo.", "pausa_ms": 0 }
+      ]
+    },
+    {
+      "id": "slide",
+      "nombre": "Slide",
+      "fase": "content",
+      "inicio_s": 330,
+      "fin_s": 480,
+      "resto": true,
+      "frases": [
+        { "texto": "Ahora crea tu escena.", "pausa_ms": 1000 },
+        { "texto": "Elige un solo momento en el que tu meta ya forma parte de tu vida diaria.", "pausa_ms": 6000 },
+        { "texto": "Míralo desde adentro, como si lo estuvieras viviendo, no como si miraras una película.", "pausa_ms": 8000 },
+        { "texto": "¿Dónde estás? Observa el lugar, los colores, la luz.", "pausa_ms": 12000 },
+        { "texto": "¿Qué escuchas? Voces, sonidos del lugar.", "pausa_ms": 12000 },
+        { "texto": "¿Qué sientes en el cuerpo? Las manos, el pecho, la respiración.", "pausa_ms": 12000 },
+        { "texto": "Deja que aparezca una emoción tranquila: gratitud, calma, la sensación de que todo está en su lugar.", "pausa_ms": 1000 },
+        { "texto": "No es ansia de que suceda. Es la calma de que ya es normal.", "pausa_ms": 15000 },
+        { "texto": "Si aparece un ojalá o una duda, no pelees con ella. Exhala y vuelve a la escena.", "pausa_ms": 10000 },
+        { "texto": "Quédate aquí, sintiendo, mientras la escena se vuelve más nítida y más natural.", "pausa_ms": 0 }
+      ]
+    },
+    {
+      "id": "accion",
+      "nombre": "Soltar y elegir una acción",
+      "fase": "content",
+      "inicio_s": 480,
+      "fin_s": 555,
+      "resto": true,
+      "frases": [
+        { "texto": "Ahora suelta la imagen, como quien suelta un globo. Ya quedó sembrada.", "pausa_ms": 6000 },
+        { "texto": "Pregúntate: ¿cuál es la única acción alineada que puedo hacer hoy?", "pausa_ms": 10000 },
+        { "texto": "Que sea pequeña y concreta.", "pausa_ms": 8000 },
+        { "texto": "Cuando la tengas clara, repite mentalmente: la haré hoy.", "pausa_ms": 6000 }
+      ]
+    },
+    {
+      "id": "salida",
+      "nombre": "Salida",
+      "fase": "exit",
+      "inicio_s": 555,
+      "fin_s": 600,
+      "resto": false,
+      "frases": [
+        { "texto": "Voy a contar de uno a cinco. Al llegar al cinco, abrirás los ojos, despierto, con energía y bienestar.", "pausa_ms": 3000 },
+        { "texto": "Uno, comienzas a regresar.", "pausa_ms": 3000, "numero": 1 },
+        { "texto": "Dos, sintiendo el cuerpo.", "pausa_ms": 3000, "numero": 2 },
+        { "texto": "Tres, más y más presente.", "pausa_ms": 3000, "numero": 3 },
+        { "texto": "Cuatro, respira profundo.", "pausa_ms": 3000, "numero": 4 },
+        { "texto": "Cinco, abre los ojos, despierto y bien.", "pausa_ms": 2000, "numero": 5 },
+        { "texto": "Anota tu slide, tu nivel de importancia y tu acción de hoy.", "voz": "Anota tu eslaid, tu nivel de importancia y tu acción de hoy.", "pausa_ms": 1500 }
+      ]
+    }
+  ]
+}

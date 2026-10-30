@@ -181,10 +181,16 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
     }
     segmentsRef.current = segments;
     eventsRef.current = flattenEvents(segments);
-    const countdown = segments.find((sg) => sg.phase === 'countdown');
-    cdFromRef.current = Math.max(1, ...(countdown?.events ?? []).map((e) => (e.kind === 'number' ? e.value : 1)));
+    // Mayor número dicho dentro de una fase de cuenta regresiva (segmento propio o fase de una rutina).
+    let inCountdown = false;
+    let from = 1;
+    for (const e of eventsRef.current) {
+      if (e.kind === 'phase') inCountdown = e.value === 'countdown';
+      else if (e.kind === 'number' && inCountdown) from = Math.max(from, e.value);
+    }
+    cdFromRef.current = from;
     // Se crea dentro del toque en "Iniciar" para que Android permita el audio.
-    const session = new AudioSession(segments, current, spec.sleep);
+    const session = new AudioSession(segments, current, spec.sleep, { toneStartAt: spec.toneStartAt, bedFadeOutS: spec.bedFadeOutS });
     sessionRef.current = session;
     clockRef.current = session;
     if (debugEnabled()) window.__ame = { clock: session, events: eventsRef.current, session, segments, ambientBuffer };
@@ -299,7 +305,12 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
   }
 
   // ------------------------------------------------------- en curso ----
-  const showNumber = view && (view.phase === 'countdown' || view.phase === 'exit') && view.number !== null;
+  // En la cuenta, el número se muestra mientras sea lo último dicho; si la voz sigue hablando
+  // (p. ej. tras el “Uno” de Sintonía 10), vuelve la esfera con el texto.
+  const showNumber =
+    view !== null &&
+    view.number !== null &&
+    (view.phase === 'exit' || (view.phase === 'countdown' && view.numberIsLatest));
   return (
     <div
       className="stage fixed inset-0"
@@ -312,7 +323,7 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
         <div className="min-w-0">
           <p className="truncate text-sm opacity-80">{spec.title}</p>
           <p className="text-sm font-semibold" data-testid="phase">
-            {view ? t(`session.phases.${view.phase}`) : ''}
+            {view ? (view.chapter ?? t(`session.phases.${view.phase}`)) : ''}
           </p>
         </div>
         <button type="button" onClick={() => setShowVolumes((v) => !v)} aria-expanded={showVolumes} className={`press min-h-12 rounded-full px-4 text-sm ${stageBtn}`}>
@@ -370,7 +381,7 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
           <BreathOrb breath={view?.breath ?? null} />
         )}
         {view?.breath && <p className="mt-6 text-lg font-medium">{t(`session.breath.${view.breath.value}`)}</p>}
-        {(settings.showCaptions || visualOnly) && view?.caption && view.phase !== 'countdown' && (
+        {(settings.showCaptions || visualOnly) && view?.caption && !(view.phase === 'countdown' && showNumber) && (
           <p className="mt-6 min-h-[4.5rem] max-w-sm text-lg leading-relaxed opacity-85" data-testid="caption">
             {view.caption}
           </p>

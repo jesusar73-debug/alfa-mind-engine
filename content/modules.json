@@ -5,6 +5,20 @@
   },
   "tools": [
     {
+      "id": "sintonia-10",
+      "title": "Sintonía 10",
+      "summary": "Rutina de 10 minutos: relájate, baja a alfa, imagina tu meta con calma y elige una acción para hoy.",
+      "instructions": [
+        "Ponte audífonos si usas ondas binaurales.",
+        "Piensa antes en una meta concreta que quieras trabajar.",
+        "Al terminar tendrás algo que anotar: tu escena, qué tanto te importó y tu acción de hoy."
+      ],
+      "segments": ["sintonia-10"],
+      "_ondas": "Las ondas entran a los 2:00 (fase Descenso) con rampa de 10 s y salen con rampa de 10 s en la Salida.",
+      "toneStartAt": 120,
+      "bedFadeOutS": 10
+    },
+    {
       "id": "pantalla-mental",
       "title": "Pantalla Mental",
       "summary": "Visualización básica: proyecta imágenes en una pantalla imaginaria.",

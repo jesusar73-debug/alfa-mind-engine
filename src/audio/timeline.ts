@@ -2,8 +2,11 @@ import type { Phase, TimelineEvent } from './types';
 
 export interface TimelineState {
   phase: Phase;
+  chapter: string | null;
   number: number | null;
   numberSpoken: boolean;
+  /** El número es lo último que se dijo (después no hubo otra frase). */
+  numberIsLatest: boolean;
   caption: string | null;
   breath: { value: 'inhala' | 'sostén' | 'exhala'; start: number; dur: number } | null;
 }
@@ -28,11 +31,12 @@ function lastIndexAtOrBefore(events: TimelineEvent[], t: number): number {
  * Se recorre hacia atrás desde el último evento ya ocurrido.
  */
 export function stateAt(events: TimelineEvent[], t: number): TimelineState {
-  const state: TimelineState = { phase: 'intro', number: null, numberSpoken: false, caption: null, breath: null };
+  const state: TimelineState = { phase: 'intro', chapter: null, number: null, numberSpoken: false, numberIsLatest: false, caption: null, breath: null };
   let gotPhase = false;
   let gotNumber = false;
   let gotCaption = false;
   let gotBreath = false;
+  let gotChapter = false;
   for (let i = lastIndexAtOrBefore(events, t); i >= 0; i--) {
     const e = events[i];
     if (e.kind === 'phase' && !gotPhase) {
@@ -40,9 +44,13 @@ export function stateAt(events: TimelineEvent[], t: number): TimelineState {
       gotPhase = true;
       break; // nada anterior a la fase actual importa
     }
-    if (e.kind === 'number' && !gotNumber) {
+    if (e.kind === 'chapter' && !gotChapter) {
+      state.chapter = e.value;
+      gotChapter = true;
+    } else if (e.kind === 'number' && !gotNumber) {
       state.number = e.value;
       state.numberSpoken = e.spoken;
+      state.numberIsLatest = !gotCaption;
       gotNumber = true;
     } else if (e.kind === 'say' && !gotCaption) {
       state.caption = e.text;

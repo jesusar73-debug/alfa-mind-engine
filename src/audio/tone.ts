@@ -11,6 +11,8 @@ export interface Tone {
   setVolume(slider: number): void;
   /** Cambia la frecuencia del pulso en vivo, sin cortes. */
   setBeat?(hz: Beat): void;
+  /** Deja el reproductor andando en silencio para poder entrar después sin arrancarlo de nuevo. */
+  prime?(): void;
 }
 
 export type Beat = 3 | 6 | 10;
@@ -126,6 +128,10 @@ export class LoopTone implements Tone {
     this.el.loop = true;
     this.el.preload = 'auto';
     this.el.volume = 0;
+  }
+
+  prime() {
+    void this.el.play().catch(() => undefined);
   }
 
   start(fadeInS: number) {

@@ -23,6 +23,8 @@ export class VoicePlayer {
   private externalPause = false;
   onSegmentStart?: (index: number) => void;
   onFinished?: () => void;
+  /** Cada avance del audio (unas 4 veces por segundo, también con la pantalla apagada). */
+  onTime?: (t: number) => void;
   /** El sistema pausó la voz (llamada entrante, otra app tomó el audio…). */
   onExternalPause?: () => void;
   /** El sistema reanudó la voz por su cuenta (iPhone al colgar una llamada). */
@@ -42,7 +44,10 @@ export class VoicePlayer {
       this.finished = true;
       this.onFinished?.();
     });
-    el.addEventListener('timeupdate', () => this.checkSegment());
+    el.addEventListener('timeupdate', () => {
+      this.checkSegment();
+      this.onTime?.(el.currentTime);
+    });
     el.addEventListener('play', () => {
       this.ownPause = false;
       if (this.externalPause) {

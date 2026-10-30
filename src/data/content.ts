@@ -17,6 +17,10 @@ export interface Tool {
   segments: string[];
   segmentsAwake?: string[];
   sleepOption?: boolean;
+  /** Segundo en que entran las ondas (Sintonía 10: 120). Sin valor: desde el inicio. */
+  toneStartAt?: number;
+  /** Rampa de salida de ondas y ambiente al empezar la salida (s). */
+  bedFadeOutS?: number;
 }
 
 export const LEVELS: Level[] = levelsJson.levels;
@@ -50,6 +54,8 @@ export interface SessionSpec {
   sleep: boolean;
   levelId?: string;
   toolId?: string;
+  toneStartAt?: number;
+  bedFadeOutS?: number;
 }
 
 export function conditioningSpec(level: Level, interval: number, sayEvery: number): SessionSpec {
@@ -72,6 +78,8 @@ export function toolSpec(tool: Tool, interval: number, sleep: boolean): SessionS
     title: tool.title,
     toolId: tool.id,
     sleep: useSleep,
+    toneStartAt: tool.toneStartAt,
+    bedFadeOutS: tool.bedFadeOutS,
     segmentIds: list.map((s) => (s === 'countdown' ? countdownId(TOOL_COUNTDOWN_FROM, interval, 1) : s)),
   };
 }

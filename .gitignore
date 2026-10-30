@@ -10,3 +10,6 @@ playwright-report/
 lighthouse/
 *.log
 .taste-skill/
+.env
+.env.*
+!.env.example

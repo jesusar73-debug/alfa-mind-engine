@@ -1,8 +1,9 @@
-// Un solo AudioContext para toda la app: voz y tono con GainNodes propios.
+// Un solo AudioContext para toda la app: voz, ambiente y ondas con GainNodes propios (tres canales).
 
 export interface Mixer {
   ctx: AudioContext;
   voice: GainNode;
+  ambient: GainNode;
   tone: GainNode;
 }
 
@@ -12,10 +13,12 @@ export function getMixer(): Mixer {
   if (!mixer) {
     const ctx = new AudioContext({ latencyHint: 'playback' });
     const voice = ctx.createGain();
+    const ambient = ctx.createGain();
     const tone = ctx.createGain();
     voice.connect(ctx.destination);
+    ambient.connect(ctx.destination);
     tone.connect(ctx.destination);
-    mixer = { ctx, voice, tone };
+    mixer = { ctx, voice, ambient, tone };
   }
   return mixer;
 }

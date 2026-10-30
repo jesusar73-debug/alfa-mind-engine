@@ -1,10 +1,15 @@
 import { useCallback, useSyncExternalStore } from 'react';
+import type { AmbientKind } from '../audio/ambient';
+import type { Beat } from '../audio/tone';
 import type { EngineMode, ToneMode } from '../audio/types';
 import { readJson, writeJson } from './storage';
 
 export interface Settings {
   voiceVolume: number; // 0..1 (slider)
   toneVolume: number;
+  ambient: AmbientKind;
+  ambientVolume: number;
+  beat: Beat; // Hz del pulso: 6 theta, 10 alfa, 3 delta
   toneEnabled: boolean;
   toneMode: ToneMode;
   interval: number; // segundos entre números
@@ -19,6 +24,9 @@ export const SETTINGS_KEY = 'ame.settings.v1';
 export const DEFAULT_SETTINGS: Settings = {
   voiceVolume: 0.9,
   toneVolume: 0.7,
+  ambient: 'lluvia',
+  ambientVolume: 0.45,
+  beat: 10,
   toneEnabled: true,
   toneMode: 'isocronico',
   interval: 2,

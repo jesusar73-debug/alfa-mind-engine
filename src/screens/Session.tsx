@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AudioSession, VisualClock, type Clock } from '../audio/engine';
 import { stateAt, type TimelineState } from '../audio/timeline';
 import type { AudioManifest, PlannedSegment, TimelineEvent } from '../audio/types';
+import { ambientBuffer } from '../audio/ambient';
 import { descentLevel, stageColors } from '../audio/descent';
 import { BreathOrb } from '../components/BreathOrb';
-import { Button, Slider, Toggle } from '../components/ui';
+import { Mixer } from '../components/Mixer';
+import { Button, Toggle } from '../components/ui';
 import { conditioningSpec, flattenEvents, LEVELS, planSegments, TOOLS, toolSpec, type SessionSpec } from '../data/content';
 import { useManifest } from '../data/useManifest';
 import { t, tl } from '../i18n';
@@ -18,7 +20,7 @@ type Status = 'prep' | 'loading' | 'running' | 'done' | 'error';
 
 declare global {
   interface Window {
-    __ame?: { clock: Clock; events: TimelineEvent[]; session: AudioSession | null; segments: PlannedSegment[] };
+    __ame?: { clock: Clock; events: TimelineEvent[]; session: AudioSession | null; segments: PlannedSegment[]; ambientBuffer: typeof ambientBuffer };
   }
 }
 
@@ -182,10 +184,10 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
     const countdown = segments.find((sg) => sg.phase === 'countdown');
     cdFromRef.current = Math.max(1, ...(countdown?.events ?? []).map((e) => (e.kind === 'number' ? e.value : 1)));
     // Se crea dentro del toque en "Iniciar" para que Android permita el audio.
-    const session = new AudioSession(segments, manifest, current, spec.sleep);
+    const session = new AudioSession(segments, current, spec.sleep);
     sessionRef.current = session;
     clockRef.current = session;
-    if (debugEnabled()) window.__ame = { clock: session, events: eventsRef.current, session, segments };
+    if (debugEnabled()) window.__ame = { clock: session, events: eventsRef.current, session, segments, ambientBuffer };
     session.onFinished = finish;
     session.onSuspended = () => setSuspendedNotice(true);
     session.onExternalPause = () => {
@@ -323,23 +325,31 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
       </div>
 
       {showVolumes && (
-        <div className="mt-3 space-y-1 rounded-[22px] bg-card p-4 text-ink">
-          <Slider
-            label={t('session.voice')}
-            value={settings.voiceVolume}
+        <div className="mt-3 max-h-[58vh] overflow-y-auto overscroll-contain rounded-[22px] bg-card p-5 text-ink" data-testid="mixer-panel">
+          <Mixer
+            settings={settings}
             disabled={visualOnly}
-            onChange={(v) => {
-              updateSettings({ voiceVolume: v });
-              sessionRef.current?.setVoiceVolume(v);
-            }}
-          />
-          <Slider
-            label={t('session.tone')}
-            value={settings.toneVolume}
-            disabled={visualOnly || !settings.toneEnabled}
-            onChange={(v) => {
-              updateSettings({ toneVolume: v });
-              sessionRef.current?.setToneVolume(v);
+            handlers={{
+              onVoice: (v) => {
+                updateSettings({ voiceVolume: v });
+                sessionRef.current?.setVoiceVolume(v);
+              },
+              onAmbientVolume: (v) => {
+                updateSettings({ ambientVolume: v });
+                sessionRef.current?.setAmbientVolume(v);
+              },
+              onAmbient: (k) => {
+                updateSettings({ ambient: k });
+                void sessionRef.current?.setAmbient(k);
+              },
+              onTone: (v) => {
+                updateSettings({ toneVolume: v });
+                sessionRef.current?.setToneVolume(v);
+              },
+              onBeat: (b) => {
+                updateSettings({ beat: b });
+                sessionRef.current?.setBeat(b);
+              },
             }}
           />
         </div>

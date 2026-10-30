@@ -39,8 +39,6 @@ FADE_OUT_S = 0.6
 NUMBER_FIT = 0.85            # un número debe durar <= 85 % del intervalo
 ENCODER_DELAY_S = 0.050       # retardo de LAME (1105 muestras a 22 050 Hz), medido con npm run verify:sync
 TRIM_DB = -45.0              # umbral para recortar silencio de cada frase
-TONE_SECONDS = 10            # loop del tono (plan B): ciclos enteros
-TONE_SR = 22050
 
 
 # ---------------------------------------------------------------- TTS ----
@@ -244,24 +242,6 @@ def encode(seg: Segment) -> dict:
     }
 
 
-def tone_wavs() -> dict:
-    """Loops de 10 s exactos (ciclos enteros => sin clic al repetir)."""
-    n = TONE_SECONDS * TONE_SR
-    t = np.arange(n) / TONE_SR
-    amp = 0.35
-    left = amp * np.sin(2 * np.pi * 200 * t)
-    right = amp * np.sin(2 * np.pi * 210 * t)
-    stereo = np.empty(2 * n, dtype=np.float32)
-    stereo[0::2], stereo[1::2] = left, right
-    write_wav(OUT / "tone-binaural.wav", stereo, TONE_SR, channels=2)
-    # Isocrónico: portadora 200 Hz por pulso de coseno elevado a 10 Hz.
-    envelope = 0.5 - 0.5 * np.cos(2 * np.pi * 10 * t)
-    write_wav(OUT / "tone-isocronico.wav", (amp * envelope * np.sin(2 * np.pi * 200 * t)).astype(np.float32), TONE_SR)
-    return {
-        "binaural": {"file": "audio/tone-binaural.wav", "bytes": (OUT / "tone-binaural.wav").stat().st_size},
-        "isocronico": {"file": "audio/tone-isocronico.wav", "bytes": (OUT / "tone-isocronico.wav").stat().st_size},
-    }
-
 
 # -------------------------------------------------------------- main ----
 
@@ -297,15 +277,13 @@ def main() -> None:
         print(f"[{i}/{len(jobs)}] {sid}", flush=True)
         segments[sid] = encode(job())
 
-    tones = tone_wavs()
-    total = sum(s["bytes"] for s in segments.values()) + sum(t["bytes"] for t in tones.values())
+    total = sum(s["bytes"] for s in segments.values())
     manifest = {
         "voice": VOICE,
         "lengthScale": LENGTH_SCALE,
         "bitrate": BITRATE,
         "totalBytes": total,
         "segments": segments,
-        "tones": tones,
     }
     (OUT / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     minutes = sum(s["duration"] for s in segments.values()) / 60

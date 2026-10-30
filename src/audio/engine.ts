@@ -1,14 +1,16 @@
 import { BASE_URL } from '../data/content';
 import { diag } from '../platform/diag';
 import type { Settings } from '../state/settings';
+import { ambientBuffer, LiveAmbient, LoopAmbient, toWavBlob, type Ambient, type AmbientKind } from './ambient';
 import { getMixer } from './mixer';
 import { VoicePlayer } from './player';
-import { LiveTone, LoopTone, type Tone } from './tone';
-import type { AudioManifest, PlannedSegment } from './types';
+import { LiveTone, LoopTone, toneLoopBuffer, type Beat, type Tone } from './tone';
+import type { PlannedSegment } from './types';
 
-const TONE_FADE_IN_S = 4;
-const TONE_FADE_OUT_EXIT_S = 20; // durante la salida 1→5 el tono se apaga despacio
-const TONE_FADE_OUT_SLEEP_S = 90; // "dormir directamente": fade muy lento
+const BED_FADE_IN_S = 10; // ondas y ambiente entran con una rampa de 10 s
+const BED_FADE_OUT_EXIT_S = 20; // durante la salida 1→5 se apagan despacio
+const BED_FADE_OUT_SLEEP_S = 90; // "dormir directamente": fade muy lento
+const AMBIENT_SWAP_S = 2.5; // cambio de ambiente a mitad de sesión: fundido cruzado
 
 export interface Clock {
   time(): number;
@@ -16,15 +18,18 @@ export interface Clock {
 }
 
 /**
- * Una sesión con audio: voz por segmentos + tono alfa.
+ * Una sesión con audio en tres canales: voz guía, ambiente y ondas.
  * Debe crearse dentro del gesto del usuario (botón "Iniciar") para que
  * Android permita arrancar el audio.
  */
 export class AudioSession implements Clock {
   readonly player: VoicePlayer;
   private tone: Tone | null = null;
-  private toneSrc: string | null = null;
+  private toneUrl: string | null = null;
+  private ambient: Ambient | null = null;
+  private ambientKind: AmbientKind;
   private exitStarted = false;
+  private ended = false;
   onFinished?: () => void;
   onSuspended?: () => void;
   onExternalPause?: () => void;
@@ -32,10 +37,10 @@ export class AudioSession implements Clock {
 
   constructor(
     private segments: PlannedSegment[],
-    private manifest: AudioManifest,
     private settings: Settings,
     private sleep: boolean,
   ) {
+    this.ambientKind = settings.ambient;
     if (settings.engine === 'webaudio') {
       const { ctx } = getMixer();
       void ctx.resume();
@@ -51,14 +56,20 @@ export class AudioSession implements Clock {
     this.player.onSegmentStart = (i) => this.handleSegment(i);
     this.player.onFinished = () => this.handleFinished();
     this.player.onExternalPause = () => {
-      this.tone?.pause();
+      this.beds((b) => b.pause());
       this.onExternalPause?.();
     };
     this.player.onExternalResume = () => {
       if (settings.engine === 'webaudio') void getMixer().ctx.resume().catch(() => undefined);
-      this.tone?.resume();
+      this.beds((b) => b.resume());
       this.onExternalResume?.();
     };
+  }
+
+  /** Aplica algo a los canales de fondo (ondas y ambiente). */
+  private beds(fn: (b: Tone | Ambient) => void) {
+    if (this.tone) fn(this.tone);
+    if (this.ambient) fn(this.ambient);
   }
 
   get totalDuration() {
@@ -70,42 +81,64 @@ export class AudioSession implements Clock {
   }
 
   async load(onProgress?: (f: number) => void) {
+    // El ambiente se genera mientras se cargan las voces.
+    const amb = this.ambientKind !== 'ninguno' ? ambientBuffer(this.ambientKind) : null;
     await this.player.load(BASE_URL, onProgress);
+    if (amb) await amb;
     if (this.settings.toneEnabled && this.settings.engine === 'compat') {
-      const res = await fetch(BASE_URL + this.manifest.tones[this.settings.toneMode].file);
-      this.toneSrc = URL.createObjectURL(await res.blob());
+      this.toneUrl = URL.createObjectURL(toWavBlob(toneLoopBuffer(this.settings.toneMode, this.settings.beat)));
     }
+  }
+
+  private async makeAmbient(kind: AmbientKind): Promise<Ambient | null> {
+    if (kind === 'ninguno') return null;
+    const buf = await ambientBuffer(kind);
+    return this.settings.engine === 'webaudio'
+      ? new LiveAmbient(buf, this.settings.ambientVolume)
+      : new LoopAmbient(buf, this.settings.ambientVolume);
   }
 
   async start() {
     if (this.settings.toneEnabled) {
       this.tone =
         this.settings.engine === 'webaudio'
-          ? new LiveTone(this.settings.toneMode, this.settings.toneVolume)
-          : new LoopTone(this.toneSrc!, this.settings.toneVolume);
-      this.tone.start(TONE_FADE_IN_S);
+          ? new LiveTone(this.settings.toneMode, this.settings.toneVolume, this.settings.beat)
+          : new LoopTone(this.toneUrl!, this.settings.toneVolume);
+      this.tone.start(BED_FADE_IN_S);
     }
+    this.ambient = await this.makeAmbient(this.ambientKind);
+    this.ambient?.start(BED_FADE_IN_S);
+    diag(
+      `mezcla: ambiente ${this.ambientKind}, ondas ${
+        this.settings.toneEnabled ? `${this.settings.toneMode} ${this.settings.beat} Hz` : 'apagadas'
+      }`,
+    );
     await this.player.play();
   }
 
   pause() {
     this.player.pause();
-    this.tone?.pause();
+    this.beds((b) => b.pause());
   }
 
   async resume() {
     if (this.settings.engine === 'webaudio') await getMixer().ctx.resume();
-    this.tone?.resume();
+    this.beds((b) => b.resume());
     try {
       await this.player.resume();
     } catch (e) {
-      this.tone?.pause();
+      this.beds((b) => b.pause());
       throw e;
     }
   }
 
   get paused() {
     return this.player.paused;
+  }
+
+  /** Estado de la mezcla (para el diagnóstico y las pruebas). */
+  mixState() {
+    return { ambient: this.ambientKind, ambientOn: this.ambient !== null, toneOn: this.tone !== null };
   }
 
   setVoiceVolume(v: number) {
@@ -116,8 +149,35 @@ export class AudioSession implements Clock {
     this.tone?.setVolume(v);
   }
 
+  setAmbientVolume(v: number) {
+    this.settings = { ...this.settings, ambientVolume: v };
+    this.ambient?.setVolume(v);
+  }
+
+  /** Cambia el pulso en vivo (en compatibilidad aplica desde la próxima sesión). */
+  setBeat(hz: Beat) {
+    this.tone?.setBeat?.(hz);
+  }
+
+  /** Cambia el sonido de ambiente a mitad de sesión con un fundido cruzado. */
+  async setAmbient(kind: AmbientKind) {
+    if (kind === this.ambientKind || this.exitStarted || this.ended) return;
+    this.ambientKind = kind;
+    const old = this.ambient;
+    this.ambient = null;
+    old?.stop(AMBIENT_SWAP_S);
+    const next = await this.makeAmbient(kind);
+    if (this.ambientKind !== kind || this.ended) return next?.stop(0);
+    this.ambient = next;
+    if (next) {
+      next.start(AMBIENT_SWAP_S);
+      if (this.player.paused) next.pause();
+    }
+  }
+
   stop() {
-    this.tone?.stop(1.5);
+    this.ended = true;
+    this.beds((b) => b.stop(1.5));
     this.player.destroy();
     this.cleanup();
   }
@@ -125,20 +185,21 @@ export class AudioSession implements Clock {
   private handleSegment(i: number) {
     if (this.segments[i].phase === 'exit' && !this.exitStarted) {
       this.exitStarted = true;
-      this.tone?.stop(TONE_FADE_OUT_EXIT_S);
+      this.beds((b) => b.stop(BED_FADE_OUT_EXIT_S));
     }
   }
 
   private handleFinished() {
-    this.tone?.stop(this.sleep ? TONE_FADE_OUT_SLEEP_S : 3);
+    this.ended = true;
+    this.beds((b) => b.stop(this.sleep ? BED_FADE_OUT_SLEEP_S : 3));
     this.onFinished?.();
-    // En modo dormir el tono sigue apagándose; se libera al terminar el fade.
-    window.setTimeout(() => this.cleanup(), (this.sleep ? TONE_FADE_OUT_SLEEP_S + 2 : 4) * 1000);
+    // En modo dormir las ondas y el ambiente siguen apagándose; se liberan al terminar el fade.
+    window.setTimeout(() => this.cleanup(), (this.sleep ? BED_FADE_OUT_SLEEP_S + 2 : 4) * 1000);
   }
 
   private cleanup() {
-    if (this.toneSrc) URL.revokeObjectURL(this.toneSrc);
-    this.toneSrc = null;
+    if (this.toneUrl) URL.revokeObjectURL(this.toneUrl);
+    this.toneUrl = null;
     if (this.settings.engine === 'webaudio') getMixer().ctx.onstatechange = null;
   }
 }

@@ -20,7 +20,6 @@ export interface AudioManifest {
   bitrate: string;
   totalBytes: number;
   segments: Record<string, ManifestSegment>;
-  tones: Record<ToneMode, { file: string; bytes: number }>;
 }
 
 export type ToneMode = 'binaural' | 'isocronico';

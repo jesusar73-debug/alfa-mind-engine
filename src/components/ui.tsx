@@ -2,11 +2,12 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
+// Botones redondos (píldora), una sola decisión para toda la app.
 const variants: Record<Variant, string> = {
-  primary: 'bg-sky text-slate-950 font-semibold active:bg-sky/80',
-  secondary: 'bg-card text-ink border border-line active:bg-line',
-  ghost: 'text-muted active:bg-card',
-  danger: 'bg-card text-rose-300 border border-rose-400/30 active:bg-line',
+  primary: 'bg-accent text-on-accent font-semibold',
+  secondary: 'bg-card text-ink font-medium shadow-[inset_0_0_0_1px_var(--color-line)]',
+  ghost: 'text-muted font-medium',
+  danger: 'bg-card text-danger font-medium shadow-[inset_0_0_0_1px_var(--color-line)]',
 };
 
 export function Button({
@@ -17,14 +18,15 @@ export function Button({
   return (
     <button
       type="button"
-      className={`min-h-14 rounded-2xl px-5 text-base transition-colors disabled:opacity-40 ${variants[variant]} ${className}`}
+      className={`press min-h-14 rounded-full px-6 text-base disabled:opacity-40 ${variants[variant]} ${className}`}
       {...props}
     />
   );
 }
 
+/** Superficie un tono más clara que el fondo; sin borde ni sombra. */
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-3xl border border-line bg-card p-5 ${className}`}>{children}</section>;
+  return <section className={`rounded-[22px] bg-card p-5 ${className}`}>{children}</section>;
 }
 
 export function Segmented<T extends string | number>({
@@ -49,9 +51,7 @@ export function Segmented<T extends string | number>({
             role="radio"
             aria-checked={active}
             onClick={() => onChange(o.value)}
-            className={`min-h-14 rounded-2xl border px-3 py-2 text-sm transition-colors ${
-              active ? 'border-sky bg-sky/15 text-sky' : 'border-line bg-bg text-muted'
-            }`}
+            className={`press min-h-14 rounded-2xl px-3 py-2 text-sm ${active ? 'bg-ink text-card' : 'bg-bg text-muted'}`}
           >
             <span className="block font-medium">{o.label}</span>
             {o.hint && <span className="block text-xs opacity-80">{o.hint}</span>}
@@ -75,9 +75,9 @@ export function Slider({
 }) {
   return (
     <label className={`block ${disabled ? 'opacity-40' : ''}`}>
-      <span className="flex justify-between text-sm text-muted">
-        <span>{label}</span>
-        <span>{Math.round(value * 100)} %</span>
+      <span className="flex justify-between text-[15px]">
+        <span className="font-medium">{label}</span>
+        <span className="num text-muted">{Math.round(value * 100)} %</span>
       </span>
       <input
         type="range"
@@ -104,14 +104,25 @@ export function Toggle({ label, checked, onChange }: { label: string; checked: b
         aria-checked={checked}
         aria-label={label}
         onClick={() => onChange(!checked)}
-        className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${checked ? 'bg-sky' : 'bg-line'}`}
+        className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${checked ? 'bg-accent' : 'bg-line'}`}
       >
         <span
-          className={`absolute top-1 h-6 w-6 rounded-full bg-white transition-transform ${
+          className={`absolute top-1 h-6 w-6 rounded-full bg-card transition-transform duration-200 ${
             checked ? 'translate-x-7' : 'translate-x-1'
           }`}
         />
       </button>
     </label>
+  );
+}
+
+/** Marca de Alfa Mind: un punto en calma con dos ondas. */
+export function Mark({ className = 'h-6 w-6' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+      <circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="6.6" opacity=".7" />
+      <circle cx="12" cy="12" r="10" opacity=".4" />
+    </svg>
   );
 }

@@ -10,9 +10,9 @@ from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "public" / "icons"
-BG = (15, 23, 42)
-SKY = (56, 189, 248)
-INDIGO = (129, 140, 248)
+BG = (233, 239, 240)
+SKY = (43, 107, 115)
+INDIGO = (13, 35, 40)
 
 
 def mix(a, b, k):
@@ -27,7 +27,7 @@ def draw(size: int, safe: float) -> Image.Image:
     g = ImageDraw.Draw(glow)
     c = s / 2
     r_max = s * safe / 2
-    g.ellipse([c - r_max * 0.55, c - r_max * 0.55, c + r_max * 0.55, c + r_max * 0.55], fill=mix(BG, INDIGO, 0.35))
+    g.ellipse([c - r_max * 0.55, c - r_max * 0.55, c + r_max * 0.55, c + r_max * 0.55], fill=BG)  # sin halo: plano, como la app
     glow = glow.filter(ImageFilter.GaussianBlur(s * 0.06))
     img.paste(glow)
 
@@ -46,13 +46,13 @@ def draw(size: int, safe: float) -> Image.Image:
 
 
 SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<rect width="64" height="64" rx="14" fill="#0f172a"/>
+<rect width="64" height="64" rx="14" fill="#e9eff0"/>
 <g fill="none" stroke-width="3">
-<circle cx="32" cy="32" r="10" stroke="#38bdf8"/>
-<circle cx="32" cy="32" r="18" stroke="#6aa6f8" opacity=".8"/>
-<circle cx="32" cy="32" r="26" stroke="#818cf8" opacity=".55"/>
+<circle cx="32" cy="32" r="10" stroke="#2b6b73"/>
+<circle cx="32" cy="32" r="18" stroke="#2b6b73" opacity=".8"/>
+<circle cx="32" cy="32" r="26" stroke="#2b6b73" opacity=".55"/>
 </g>
-<circle cx="32" cy="32" r="4" fill="#38bdf8"/>
+<circle cx="32" cy="32" r="4" fill="#2b6b73"/>
 </svg>
 """
 

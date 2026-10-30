@@ -23,19 +23,19 @@ export function AboutScreen() {
       <h1 className="text-2xl font-semibold">{t('about.title')}</h1>
       <Card className="space-y-3 leading-relaxed">
         {tl('about.body').map((p, i) => (
-          <p key={i} className={i === 1 || i === 2 ? 'font-medium text-amber-200' : ''}>
+          <p key={i} className={i === 1 || i === 2 ? 'font-medium text-notice-ink' : ''}>
             {p}
           </p>
         ))}
       </Card>
       <Card className="space-y-2 text-sm text-muted">
-        <h2 className="text-sm uppercase tracking-widest text-indigo">{t('about.credits')}</h2>
+        <h2 className="text-base font-semibold text-ink">{t('about.credits')}</h2>
         <p>{t('about.voiceCredit')}</p>
         <p>{t('about.version', { v: __APP_VERSION__ })}</p>
         {manifest && <p>{t('about.storage', { mb: (manifest.totalBytes / 1e6).toFixed(1) })}</p>}
       </Card>
       <Card className="space-y-3 text-sm">
-        <h2 className="text-sm uppercase tracking-widest text-indigo">{t('about.diagTitle')}</h2>
+        <h2 className="text-base font-semibold text-ink">{t('about.diagTitle')}</h2>
         {lines.length ? (
           <>
             <p className="text-muted">{t('about.diagHint')}</p>

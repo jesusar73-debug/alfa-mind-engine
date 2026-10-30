@@ -74,7 +74,7 @@ export default function App() {
 function Shell({ route }: { route: Exclude<Route, { name: 'session' }> }) {
   return (
     <div className="mx-auto flex min-h-full max-w-lg flex-col">
-      <main className="safe-top flex-1 px-4 pb-28">
+      <main className="safe-top flex-1 px-5 pb-28">
         {route.name === 'home' && <Home tab={route.tab} />}
         {route.name === 'progress' && <ProgressScreen />}
         {route.name === 'settings' && <SettingsScreen />}
@@ -82,7 +82,7 @@ function Shell({ route }: { route: Exclude<Route, { name: 'session' }> }) {
       </main>
       <nav
         aria-label="Principal"
-        className="safe-bottom fixed inset-x-0 bottom-0 z-10 border-t border-line bg-bg/95 backdrop-blur"
+        className="safe-bottom fixed inset-x-0 bottom-0 z-10 bg-bg shadow-[0_-1px_0_var(--color-line)]"
       >
         <ul className="mx-auto grid max-w-lg grid-cols-4">
           {NAV.map((n) => {
@@ -92,11 +92,11 @@ function Shell({ route }: { route: Exclude<Route, { name: 'session' }> }) {
                 <a
                   href={`#${n.path}`}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs ${
-                    active ? 'text-sky' : 'text-muted'
+                  className={`press flex min-h-16 flex-col items-center justify-center gap-1 text-xs ${
+                    active ? 'font-semibold text-ink' : 'text-muted'
                   }`}
                 >
-                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d={n.icon} />
                   </svg>
                   {n.label}

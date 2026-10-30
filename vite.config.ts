@@ -28,8 +28,8 @@ export default defineConfig({
         scope: base,
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#0f172a',
-        theme_color: '#0f172a',
+        background_color: '#e9eff0',
+        theme_color: '#e9eff0',
         categories: ['health', 'lifestyle'],
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
@@ -39,7 +39,7 @@ export default defineConfig({
       },
       workbox: {
         // Precache total: código, íconos, audios y timelines.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,json,mp3,wav}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,json,mp3,wav,woff2}'],
         maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         // Toma control desde la primera visita (las actualizaciones siguen esperando al usuario).

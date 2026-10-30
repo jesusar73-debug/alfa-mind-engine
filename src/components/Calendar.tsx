@@ -51,9 +51,9 @@ export function Calendar({ progress }: { progress: Progress }) {
               data-day={key}
               data-done={done || undefined}
               aria-label={`${d.getDate()}${done ? ' ✓' : ''}${isToday ? ' (hoy)' : ''}`}
-              className={`flex aspect-square items-center justify-center rounded-xl text-sm ${
-                done ? 'bg-sky/80 font-semibold text-slate-950' : 'text-ink/80'
-              } ${isToday ? 'ring-2 ring-indigo ring-offset-2 ring-offset-card' : ''}`}
+              className={`num flex aspect-square items-center justify-center rounded-full text-sm ${
+                done ? 'bg-accent font-semibold text-on-accent' : 'text-ink'
+              } ${isToday ? 'shadow-[inset_0_0_0_1.5px_var(--color-ink)]' : ''}`}
             >
               {d.getDate()}
             </li>
@@ -62,10 +62,10 @@ export function Calendar({ progress }: { progress: Progress }) {
       </ol>
       <div className="mt-3 flex gap-4 text-xs text-muted">
         <span className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-sky/80" /> {t('progress.legendDone')}
+          <span className="h-3 w-3 rounded-full bg-accent" /> {t('progress.legendDone')}
         </span>
         <span className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded ring-2 ring-indigo" /> {t('progress.legendToday')}
+          <span className="h-3 w-3 rounded-full shadow-[inset_0_0_0_1.5px_var(--color-ink)]" /> {t('progress.legendToday')}
         </span>
       </div>
     </div>

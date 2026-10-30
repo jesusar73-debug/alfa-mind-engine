@@ -52,12 +52,12 @@ export function ProgressScreen() {
       </div>
 
       <Card>
-        <h2 className="mb-3 text-sm uppercase tracking-widest text-indigo">{t('progress.calendar')}</h2>
+        <h2 className="mb-3 text-base font-semibold text-ink">{t('progress.calendar')}</h2>
         <Calendar progress={progress} />
       </Card>
 
       <Card>
-        <h2 className="text-sm uppercase tracking-widest text-indigo" id="start-level">
+        <h2 className="text-base font-semibold text-ink" id="start-level">
           {t('progress.startTitle')}
         </h2>
         <p className="mt-2 text-sm text-muted">{t('progress.startHint')}</p>
@@ -72,7 +72,7 @@ export function ProgressScreen() {
                 aria-checked={active}
                 onClick={() => setStartLevel(lv.id)}
                 className={`min-h-14 rounded-2xl border px-3 py-2 text-left text-sm transition-colors ${
-                  active ? 'border-sky bg-sky/15 text-sky' : 'border-line bg-bg text-muted'
+                  active ? 'border-accent bg-accent/15 text-accent' : 'border-line bg-bg text-muted'
                 }`}
               >
                 <span className="block font-medium">{lv.name}</span>
@@ -81,7 +81,7 @@ export function ProgressScreen() {
             );
           })}
         </div>
-        <p className="mt-3 rounded-2xl bg-sky/10 p-3 text-sm text-sky" data-testid="start-preview">
+        <p className="mt-3 rounded-2xl bg-accent/10 p-3 text-sm text-accent" data-testid="start-preview">
           {t('progress.startPreview', {
             level: pos.level.name,
             day: pos.levelDays
@@ -92,7 +92,7 @@ export function ProgressScreen() {
       </Card>
 
       <Card>
-        <h2 className="mb-3 text-sm uppercase tracking-widest text-indigo">{t('progress.levels')}</h2>
+        <h2 className="mb-3 text-base font-semibold text-ink">{t('progress.levels')}</h2>
         <ol className="space-y-3">
           {LEVELS.map((lv, i) => {
             const skipped = i < startIdx;
@@ -103,7 +103,7 @@ export function ProgressScreen() {
             return (
               <li key={lv.id} className={skipped ? 'opacity-50' : ''}>
                 <div className="flex justify-between text-sm">
-                  <span className={current ? 'font-semibold text-sky' : done ? 'text-ink' : 'text-muted'}>
+                  <span className={current ? 'font-semibold text-accent' : done ? 'text-ink' : 'text-muted'}>
                     {lv.name} · {lv.from} → 1
                   </span>
                   <span className="text-muted">
@@ -112,7 +112,7 @@ export function ProgressScreen() {
                   </span>
                 </div>
                 <div className="mt-1 h-2 overflow-hidden rounded-full bg-bg">
-                  <div className={`h-full ${done ? 'bg-sky/60' : 'bg-sky'}`} style={{ width: `${pct}%` }} />
+                  <div className={`h-full ${done ? 'bg-accent/60' : 'bg-accent'}`} style={{ width: `${pct}%` }} />
                 </div>
               </li>
             );
@@ -121,7 +121,7 @@ export function ProgressScreen() {
       </Card>
 
       <Card>
-        <h2 className="mb-3 text-sm uppercase tracking-widest text-indigo">{t('progress.backup')}</h2>
+        <h2 className="mb-3 text-base font-semibold text-ink">{t('progress.backup')}</h2>
         <div className="grid gap-3">
           <Button onClick={exportBackup} data-testid="export">
             {t('progress.export')}
@@ -141,7 +141,7 @@ export function ProgressScreen() {
           />
         </div>
         {message && (
-          <p role="status" className="mt-3 text-sm text-sky">
+          <p role="status" className="mt-3 text-sm text-accent">
             {message}
           </p>
         )}

@@ -136,7 +136,7 @@ test('nivel inicial: con 5 días hechos y Nivel 3 elegido, hoy toca Nivel 3 día
   await expect(page.getByTestId('completed')).toHaveText('5');
 
   // El botón principal abre la sesión de 25 → 1.
-  await page.getByRole('button', { name: 'Empezar sesión' }).click();
+  await page.getByRole('button', { name: 'Empezar', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Nivel 3 · 25 → 1' })).toBeVisible();
 });
 

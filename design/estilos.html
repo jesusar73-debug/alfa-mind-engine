@@ -1,0 +1,252 @@
+<title>Alfa Mind: tres estilos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Fraunces:opsz,wght,SOFT@9..144,300..500,100&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&family=Manrope:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap">
+<style>
+/* Layout: una columna de lectura; cada estilo es una banda con tres teléfonos en fila
+   (en el celular la fila se desliza de lado dentro de su propio marco). */
+:root {
+  --bg: #f4f5f3;
+  --fg: #161a1b;
+  --muted: #555d60;
+  --band: #e9ecea;
+  --focus: #2c6e76;
+  --font-ui: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-title: "Fraunces", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #121414; --fg: #e8eae8; --muted: #a9b0ae; --band: #1b1e1e; --focus: #7fc3c9; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #121414; --fg: #e8eae8; --muted: #a9b0ae; --band: #1b1e1e; --focus: #7fc3c9; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--font-ui); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 64px; display: grid; gap: 56px; }
+header h1 { font: 400 clamp(32px, 6vw, 52px)/1.02 var(--font-title); font-variation-settings: "SOFT" 100; letter-spacing: -0.02em; margin: 0 0 14px; text-wrap: balance; }
+header p { margin: 0; max-width: 60ch; color: var(--fg); }
+header p + p { margin-top: 10px; color: var(--muted); }
+
+.option { display: grid; gap: 18px; }
+.option-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.option-head h2 { margin: 0; font: 500 26px/1.15 var(--font-ui); letter-spacing: -0.01em; }
+.option-head .letter { font: 400 26px/1 var(--font-title); color: var(--muted); }
+.option p.idea { margin: 0; max-width: 62ch; }
+.option ul.facts { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px 22px; color: var(--muted); font-size: 14px; }
+
+.rail { overflow-x: auto; scroll-snap-type: x mandatory; margin-inline: -16px; padding: 4px 16px 18px; }
+.phones { display: flex; gap: 20px; width: max-content; }
+.phones figure { margin: 0; scroll-snap-align: center; display: grid; gap: 10px; justify-items: start; }
+.phones figcaption { font-size: 14px; color: var(--muted); }
+
+/* ---------- el teléfono ---------- */
+.phone { width: 286px; height: 590px; border-radius: 38px; padding: 10px; background: #0b0c0c; flex: none; }
+.screen { position: relative; height: 100%; border-radius: 29px; overflow: hidden; background: var(--p-ground); color: var(--p-ink); font-family: var(--p-font); display: flex; flex-direction: column; }
+.status { display: flex; justify-content: space-between; padding: 12px 22px 0; font-size: 11px; font-weight: 600; opacity: .8; }
+
+/* home */
+.home { padding: 16px 20px 18px; display: flex; flex-direction: column; flex: 1; gap: 14px; }
+.brand { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.brand svg { width: 22px; height: 22px; }
+.greet { font: 400 28px/1.08 var(--p-display); letter-spacing: -0.02em; margin: 6px 0 0; }
+.greet small { display: block; font: 400 13px/1.4 var(--p-font); color: var(--p-muted); letter-spacing: 0; margin-top: 6px; }
+.tabs { display: flex; gap: 18px; font-size: 13px; }
+.tabs span { padding-bottom: 4px; color: var(--p-muted); }
+.tabs span.on { color: var(--p-ink); box-shadow: inset 0 -2px 0 var(--p-accent); font-weight: 600; }
+.today { background: var(--p-surface); border-radius: var(--p-radius); padding: 16px; display: grid; gap: 10px; }
+.today .lvl { display: flex; justify-content: space-between; align-items: baseline; }
+.today .lvl b { font: 400 34px/1 var(--p-display); letter-spacing: -0.02em; }
+.today .lvl span { font-size: 12px; color: var(--p-muted); }
+.today .meta { font-size: 13px; color: var(--p-muted); }
+.dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; }
+.dots i { height: 6px; border-radius: 3px; background: var(--p-track); }
+.dots i.done { background: var(--p-accent); }
+.dots i.now { background: var(--p-ink); }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; color: var(--p-muted); gap: 4px; }
+.week b { display: block; margin: 4px auto 0; width: 26px; height: 26px; border-radius: 50%; line-height: 26px; font-weight: 500; color: var(--p-ink); font-size: 12px; }
+.week b.done { background: var(--p-accent); color: var(--p-on-accent); }
+.week b.today { box-shadow: inset 0 0 0 1.5px var(--p-ink); }
+.streak { font-size: 13px; color: var(--p-muted); }
+.streak strong { color: var(--p-ink); font-weight: 600; }
+.cta { margin-top: auto; height: 56px; border-radius: var(--p-btn-radius); background: var(--p-accent); color: var(--p-on-accent); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; }
+.navbar { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; font-size: 10.5px; color: var(--p-muted); padding: 8px 8px 14px; background: var(--p-ground); }
+.navbar span.on { color: var(--p-ink); font-weight: 600; }
+
+/* session */
+.session { position: absolute; inset: 0; background: var(--stage, var(--p-stage-0)); color: var(--stage-ink, var(--p-stage-ink-0)); display: flex; flex-direction: column; padding: 34px 22px 20px; transition: background-color .9s ease, color .9s ease; }
+.session .top { display: flex; justify-content: space-between; font-size: 12px; opacity: .85; }
+.session .line { height: 2px; background: currentColor; opacity: .18; margin-top: 12px; border-radius: 1px; position: relative; }
+.session .line i { position: absolute; inset: 0 auto 0 0; width: var(--prog, 46%); background: currentColor; opacity: 1; border-radius: 1px; }
+.session .num { flex: 1; display: flex; align-items: center; justify-content: center; font: 300 150px/1 var(--p-display); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.session .phase { text-align: center; font-size: 13px; opacity: .8; margin-top: -28px; margin-bottom: 26px; }
+.session .ctrl { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 8px; }
+.session .ctrl span { height: 50px; border-radius: var(--p-btn-radius); display: flex; align-items: center; justify-content: center; font-size: 13px; background: color-mix(in srgb, currentColor 12%, transparent); }
+.session .ctrl span.main { background: currentColor; }
+.session .ctrl span.main em { font-style: normal; color: var(--stage, var(--p-stage-0)); font-weight: 600; transition: color .9s ease; }
+.play { position: absolute; top: 58px; left: 50%; translate: -50% 0; border: 0; font: 600 12px/1 var(--p-font); padding: 9px 14px; border-radius: 999px; background: color-mix(in srgb, currentColor 14%, transparent); color: inherit; cursor: pointer; }
+.play:focus-visible, .rail:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* mixer */
+.mixer { padding: 16px 20px 18px; display: flex; flex-direction: column; gap: 16px; flex: 1; }
+.mixer h3 { font: 400 26px/1.1 var(--p-display); margin: 6px 0 0; letter-spacing: -0.02em; }
+.chan { display: grid; gap: 8px; }
+.chan .row { display: flex; justify-content: space-between; font-size: 14px; }
+.chan .row span { color: var(--p-muted); font-variant-numeric: tabular-nums; }
+.chan .bar { height: 6px; border-radius: 3px; background: var(--p-track); position: relative; }
+.chan .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--p-accent); }
+.chan .bar i::after { content: ""; position: absolute; right: -9px; top: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--p-surface); box-shadow: inset 0 0 0 2px var(--p-accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips span { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: var(--p-surface); color: var(--p-muted); }
+.chips span.on { background: var(--p-ink); color: var(--p-ground); }
+.note { font-size: 12px; color: var(--p-muted); background: var(--p-surface); border-radius: calc(var(--p-radius) - 6px); padding: 10px 12px; }
+
+/* ---------- las tres paletas (fijas: representan la app, no la página) ---------- */
+.opt-a { --p-ground: #e9eff0; --p-surface: #f8fafa; --p-ink: #14262b; --p-muted: #4b5f64; --p-accent: #2b6b73; --p-on-accent: #f4fafa; --p-track: #d2dcdd;
+  --p-stage-0: #dbe6e8; --p-stage-ink-0: #14262b; --p-stage-m: #3f7c84; --p-stage-1: #0d2328; --p-stage-ink-1: #cfe3e5;
+  --p-font: "Figtree", system-ui, sans-serif; --p-display: "Fraunces", Georgia, serif; --p-radius: 22px; --p-btn-radius: 999px; }
+.opt-b { --p-ground: #ecefe6; --p-surface: #f7f8f3; --p-ink: #1c2619; --p-muted: #535e4f; --p-accent: #46663a; --p-on-accent: #f5f8f1; --p-track: #d6dccd;
+  --p-stage-0: #e2e8da; --p-stage-ink-0: #1c2619; --p-stage-m: #5b7a4b; --p-stage-1: #141c11; --p-stage-ink-1: #d3dccb;
+  --p-font: "Instrument Sans", system-ui, sans-serif; --p-display: "Instrument Serif", Georgia, serif; --p-radius: 6px; --p-btn-radius: 6px; }
+.opt-c { --p-ground: #141413; --p-surface: #1f1e1c; --p-ink: #eeebe4; --p-muted: #aaa69c; --p-accent: #d9b37c; --p-on-accent: #1a1610; --p-track: #33312d;
+  --p-stage-0: #1c1b19; --p-stage-ink-0: #eeebe4; --p-stage-m: #11100f; --p-stage-1: #050505; --p-stage-ink-1: #8c877c;
+  --p-font: "Manrope", system-ui, sans-serif; --p-display: "Newsreader", Georgia, serif; --p-radius: 18px; --p-btn-radius: 16px; }
+.opt-a .greet, .opt-a .session .num, .opt-a .today .lvl b, .opt-a .mixer h3 { font-variation-settings: "SOFT" 100; }
+
+footer { display: grid; gap: 8px; max-width: 62ch; }
+footer h2 { margin: 0; font: 500 22px/1.2 var(--font-ui); }
+footer p { margin: 0; }
+footer p.muted { color: var(--muted); font-size: 14px; }
+
+@media (prefers-reduced-motion: reduce) { .session, .session .ctrl span.main em { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Alfa Mind Engine: elige un estilo</h1>
+    <p>Tres direcciones para el rediseño. Las tres comparten una idea: <strong>el descenso</strong>. Durante la cuenta regresiva la pantalla se va oscureciendo número a número, como bajar a un nivel más profundo, y en la salida 1 → 5 vuelve a aclararse.</p>
+    <p>Toca “Ver el descenso” en cada sesión para sentirlo. Desliza de lado para ver Inicio, Sesión y Mezclador. Los datos son de ejemplo (Nivel 3, día 6).</p>
+  </header>
+
+  <section class="option opt-a" data-opt="a" aria-labelledby="h-a">
+    <div class="option-head"><span class="letter">A</span><h2 id="h-a">Niebla de alba</h2></div>
+    <p class="idea">Claro y fresco, como la luz gris azulada antes del amanecer. Fondo de niebla, acento verde agua profundo, números en una serif suave. El descenso va de la niebla al mar de noche.</p>
+    <ul class="facts"><li>Fondo claro</li><li>Bordes redondeados</li><li>Serif suave para números</li></ul>
+    <div class="rail" tabindex="0" aria-label="Pantallas del estilo A"><div class="phones"></div></div>
+  </section>
+
+  <section class="option opt-b" data-opt="b" aria-labelledby="h-b">
+    <div class="option-head"><span class="letter">B</span><h2 id="h-b">Salvia</h2></div>
+    <p class="idea">Claro y cálido, con verdes de hoja seca y musgo. Esquinas rectas, una serif clásica para los títulos. El descenso va de la salvia al bosque de noche.</p>
+    <ul class="facts"><li>Fondo claro</li><li>Esquinas casi rectas</li><li>Serif clásica para títulos</li></ul>
+    <div class="rail" tabindex="0" aria-label="Pantallas del estilo B"><div class="phones"></div></div>
+  </section>
+
+  <section class="option opt-c" data-opt="c" aria-labelledby="h-c">
+    <div class="option-head"><span class="letter">C</span><h2 id="h-c">Penumbra</h2></div>
+    <p class="idea">Oscuro y cálido, para la noche y el Vaso de Agua. Negro neutro, acento color vela, texto marfil. El descenso apaga la pantalla casi por completo y el número queda tenue.</p>
+    <ul class="facts"><li>Fondo oscuro</li><li>Acento color vela</li><li>Ideal antes de dormir</li></ul>
+    <div class="rail" tabindex="0" aria-label="Pantallas del estilo C"><div class="phones"></div></div>
+  </section>
+
+  <footer>
+    <h2>Cómo elegir</h2>
+    <p>Responde en el chat con la letra: <strong>A</strong>, <strong>B</strong> o <strong>C</strong>. También puedes mezclar, por ejemplo “A de día y C de noche”: la app puede cambiar sola a oscuro cuando cae la tarde.</p>
+    <p class="muted">Son bocetos de dirección: los textos, el mezclador de tres canales y el registro nocturno se ajustan cuando construyamos cada paso.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  const mark = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="6.6" opacity=".7"/><circle cx="12" cy="12" r="10" opacity=".4"/></svg>';
+  const days = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+  const week = [0, 1, 2, 3, 4].map(() => 'done').concat(['today', '']);
+
+  const home = () => `
+    <div class="status"><span>6:12</span><span>100 %</span></div>
+    <div class="home">
+      <div class="brand">${mark}<span>Alfa Mind</span></div>
+      <p class="greet">Buenos días<small>Tu práctica de hoy te espera.</small></p>
+      <div class="tabs"><span class="on">Acondicionamiento</span><span>Herramientas</span></div>
+      <div class="today">
+        <div class="lvl"><b>25 → 1</b><span>Nivel 3</span></div>
+        <div class="meta">Día 6 de 10 · unos 5 minutos</div>
+        <div class="dots" aria-label="5 de 10 días hechos">${Array.from({ length: 10 }, (_, i) => `<i class="${i < 5 ? 'done' : i === 5 ? 'now' : ''}"></i>`).join('')}</div>
+      </div>
+      <div class="week">${days.map((d, i) => `<span>${d}<b class="${week[i]}">${23 + i}</b></span>`).join('')}</div>
+      <p class="streak">Racha de <strong>5 días</strong> · 5 sesiones completadas</p>
+      <div class="cta">Empezar</div>
+    </div>
+    <div class="navbar"><span class="on">Inicio</span><span>Progreso</span><span>Ajustes</span><span>Acerca de</span></div>`;
+
+  const session = () => `
+    <div class="session">
+      <div class="top"><span>Nivel 3 · 25 → 1</span><span>Mezclador</span></div>
+      <div class="line"><i></i></div>
+      <button class="play" type="button">Ver el descenso</button>
+      <div class="num" aria-live="off">17</div>
+      <p class="phase">Cuenta regresiva</p>
+      <div class="ctrl"><span>Detener</span><span class="main"><em>Pausa</em></span><span>Ojos cerrados</span></div>
+    </div>`;
+
+  const mixer = () => `
+    <div class="status"><span>6:14</span><span>100 %</span></div>
+    <div class="mixer">
+      <div class="brand">${mark}<span>Alfa Mind</span></div>
+      <h3>Mezclador</h3>
+      <div class="chan"><div class="row"><b>Voz guía</b><span>100 %</span></div><div class="bar"><i style="width:100%"></i></div></div>
+      <div class="chan"><div class="row"><b>Ambiente</b><span>40 %</span></div><div class="bar"><i style="width:40%"></i></div>
+        <div class="chips"><span class="on">Lluvia</span><span>Río</span><span>Bosque</span><span>Ninguno</span></div></div>
+      <div class="chan"><div class="row"><b>Binaural</b><span>15 %</span></div><div class="bar"><i style="width:15%"></i></div>
+        <div class="chips"><span>Theta 6 Hz</span><span class="on">Alfa 10 Hz</span><span>Delta 3 Hz</span></div></div>
+      <p class="note">Binaural: solo funciona con audífonos, a volumen bajo.</p>
+    </div>`;
+
+  for (const sec of document.querySelectorAll('.option')) {
+    const row = sec.querySelector('.phones');
+    row.innerHTML = [['Inicio', home()], ['Sesión, a mitad de la cuenta', session()], ['Mezclador (paso 1 del plan)', mixer()]]
+      .map(([cap, html]) => `<figure><div class="phone"><div class="screen">${html}</div></div><figcaption>${cap}</figcaption></figure>`).join('');
+    const s = sec.querySelector('.session');
+    paint(s, sec, 0.5);
+    sec.querySelector('.play').addEventListener('click', (e) => run(s, sec, e.currentTarget));
+  }
+
+  // Mezcla dos colores hex según k (0 = superficie, 1 = profundo).
+  function mix(a, b, k) {
+    const pa = a.match(/\w\w/g).map((h) => parseInt(h, 16));
+    const pb = b.match(/\w\w/g).map((h) => parseInt(h, 16));
+    return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * k).toString(16).padStart(2, '0')).join('');
+  }
+  // Tres paradas (superficie, medio saturado, profundo) para que el descenso no pase por un gris turbio.
+  function paint(s, sec, k) {
+    const cs = getComputedStyle(sec);
+    const g = (n) => cs.getPropertyValue(n).trim();
+    const bg = k < 0.5 ? mix(g('--p-stage-0'), g('--p-stage-m'), k * 2) : mix(g('--p-stage-m'), g('--p-stage-1'), (k - 0.5) * 2);
+    const lightInk = sec.dataset.opt === 'c' || k >= 0.3;
+    s.style.setProperty('--stage', bg);
+    s.style.setProperty('--stage-ink', lightInk ? (sec.dataset.opt === 'c' ? mix(g('--p-stage-ink-0'), g('--p-stage-ink-1'), k) : g('--p-stage-ink-1')) : g('--p-stage-ink-0'));
+  }
+
+  function run(s, sec, btn) {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const num = s.querySelector('.num');
+    const phase = s.querySelector('.phase');
+    const line = s.querySelector('.line i');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const steps = [];
+    for (let n = 25; n >= 1; n--) steps.push({ n, k: (25 - n) / 24, p: 'Cuenta regresiva' });
+    for (let n = 1; n <= 5; n++) steps.push({ n, k: 1 - n / 5, p: 'Regreso' });
+    let i = 0;
+    const tick = () => {
+      const st = steps[i];
+      num.textContent = st.n;
+      phase.textContent = st.p;
+      paint(s, sec, st.k);
+      line.style.width = `${20 + (i / (steps.length - 1)) * 80}%`;
+      i++;
+      if (i < steps.length) setTimeout(tick, reduce ? 260 : st.p === 'Regreso' ? 650 : 320);
+      else setTimeout(() => { num.textContent = '17'; phase.textContent = 'Cuenta regresiva'; paint(s, sec, 0.5); line.style.width = '46%'; btn.disabled = false; }, 1800);
+    };
+    tick();
+  }
+})();
+</script>

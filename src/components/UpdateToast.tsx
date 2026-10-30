@@ -25,19 +25,21 @@ export function UpdateToast({ hidden = false }: { hidden?: boolean }) {
   if (hidden || (!needRefresh && !offlineReady)) return null;
 
   return (
-    <div role="status" className="fixed inset-x-3 bottom-24 z-20 mx-auto max-w-md rounded-2xl border border-line bg-card/95 p-4 shadow-xl backdrop-blur">
+    <div role="status" className="fixed inset-x-4 bottom-24 z-20 mx-auto max-w-md rounded-[22px] bg-card p-4 shadow-[0_8px_24px_rgba(20,38,43,0.14)]">
       {needRefresh ? (
-        <div className="flex items-center gap-3">
-          <p className="flex-1 text-sm">{t('update.available')}</p>
-          <Button variant="ghost" onClick={() => setNeedRefresh(false)} className="min-h-12 px-3 text-sm">
-            {t('update.later')}
-          </Button>
-          <Button variant="primary" onClick={() => void updateServiceWorker(true)} className="min-h-12 px-4 text-sm">
-            {t('update.reload')}
-          </Button>
+        <div className="flex flex-col gap-3">
+          <p className="text-[15px] font-medium">{t('update.available')}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => setNeedRefresh(false)} className="min-h-12 text-sm">
+              {t('update.later')}
+            </Button>
+            <Button variant="primary" onClick={() => void updateServiceWorker(true)} className="min-h-12 text-sm">
+              {t('update.reload')}
+            </Button>
+          </div>
         </div>
       ) : (
-        <p className="text-sm text-sky">{t('update.offlineReady')}</p>
+        <p className="text-sm text-accent">{t('update.offlineReady')}</p>
       )}
     </div>
   );

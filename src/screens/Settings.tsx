@@ -52,7 +52,7 @@ export function SettingsScreen() {
           onChange={(v) => update({ toneMode: v })}
           options={[
             { value: 'isocronico', label: t('settings.isocronico'), hint: t('settings.isocronicoHint') },
-            { value: 'binaural', label: t('settings.binaural'), hint: `🎧 ${t('settings.binauralHint')}` },
+            { value: 'binaural', label: t('settings.binaural'), hint: t('settings.binauralHint') },
           ]}
         />
         <Button className="w-full" disabled={!s.toneEnabled || testing} onClick={testTone}>

@@ -1,22 +1,55 @@
 import { useState } from 'react';
-import { Calendar } from '../components/Calendar';
-import { Button, Card } from '../components/ui';
+import { Button, Card, Mark } from '../components/ui';
 import { conditioningSpec, LEVELS, TOOLS, toolSpec } from '../data/content';
 import { minutesOf, useManifest } from '../data/useManifest';
 import { t } from '../i18n';
-import { completedCount, currentPosition, daysSinceLast, doneToday, streak, useProgress } from '../state/progress';
-import { useSettings } from '../state/settings';
 import { navigate } from '../router';
+import {
+  completedCount,
+  currentPosition,
+  dayKey,
+  daysSinceLast,
+  doneToday,
+  streak,
+  useProgress,
+  type Progress,
+} from '../state/progress';
+import { useSettings } from '../state/settings';
+
+function greeting(now = new Date()): string {
+  const h = now.getHours();
+  if (h >= 5 && h < 12) return t('home.greetMorning');
+  if (h >= 12 && h < 19) return t('home.greetAfternoon');
+  return t('home.greetNight');
+}
 
 export function Home({ tab }: { tab: 'acond' | 'tools' }) {
+  const progress = useProgress();
+  const today = doneToday(progress);
+  const gap = daysSinceLast(progress);
+  const pos = currentPosition(progress);
+  const sub = today
+    ? t('home.doneToday')
+    : gap !== null && gap > 1
+      ? t('home.resume', { level: pos.level.name, day: pos.dayInLevel })
+      : t('home.waiting');
+
   return (
-    <div>
-      <header className="pb-4 pt-2">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('app.name')}</h1>
-        <p className="text-sm text-muted">{t('app.tagline')}</p>
+    <div className="flex flex-col gap-5">
+      <header className="flex flex-col gap-4 pt-2">
+        <p className="flex items-center gap-2 text-sm font-semibold text-accent">
+          <Mark className="h-6 w-6" />
+          {t('app.short')}
+        </p>
+        <div>
+          <h1 className="text-[30px] font-normal leading-[1.08] tracking-[-0.02em]">{greeting()}</h1>
+          <p className="mt-1.5 text-[15px] text-muted" data-testid={today ? 'done-today' : undefined}>
+            {sub}
+          </p>
+        </div>
       </header>
 
-      <div role="tablist" className="mb-5 grid grid-cols-2 gap-1 rounded-2xl bg-card p-1">
+      <div role="tablist" className="flex gap-6">
         {(
           [
             ['acond', '#/', t('home.tabConditioning')],
@@ -28,8 +61,8 @@ export function Home({ tab }: { tab: 'acond' | 'tools' }) {
             role="tab"
             aria-selected={tab === id}
             href={href}
-            className={`flex min-h-14 items-center justify-center rounded-xl text-sm font-medium ${
-              tab === id ? 'bg-bg text-sky shadow' : 'text-muted'
+            className={`flex min-h-11 items-center text-[15px] ${
+              tab === id ? 'font-semibold text-ink shadow-[inset_0_-2px_0_var(--color-accent)]' : 'text-muted'
             }`}
           >
             {label}
@@ -37,13 +70,12 @@ export function Home({ tab }: { tab: 'acond' | 'tools' }) {
         ))}
       </div>
 
-      {tab === 'acond' ? <Conditioning /> : <Tools />}
+      {tab === 'acond' ? <Conditioning progress={progress} /> : <Tools />}
     </div>
   );
 }
 
-function Conditioning() {
-  const progress = useProgress();
+function Conditioning({ progress }: { progress: Progress }) {
   const [settings] = useSettings();
   const manifest = useManifest();
   const [showLevels, setShowLevels] = useState(false);
@@ -51,84 +83,71 @@ function Conditioning() {
   const count = completedCount(progress);
   const pos = currentPosition(progress);
   const today = doneToday(progress);
-  const gap = daysSinceLast(progress);
   const spec = conditioningSpec(pos.level, settings.interval, settings.sayEvery);
   const min = minutesOf(spec, manifest);
   const s = streak(progress);
+  const doneInLevel = pos.levelDays ? Math.min(pos.dayInLevel - 1, pos.levelDays) : 0;
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <p className="text-xs uppercase tracking-widest text-indigo">{t('home.today')}</p>
-        <div className="mt-2 flex items-end justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold">{pos.level.name}</h2>
-            <p className="text-muted">
-              {t('home.countdown', { from: pos.level.from })}
-              {min !== null && ` · ${t('home.minutes', { min })}`}
-            </p>
+    <div className="flex flex-col gap-5">
+      <Card className="flex flex-col gap-3">
+        <h2 className="flex items-baseline justify-between gap-3">
+          <span className="num text-[38px] font-normal leading-none tracking-[-0.03em]">{t('home.countdown', { from: pos.level.from })}</span>
+          <span className="text-sm text-muted">{pos.level.name}</span>
+        </h2>
+        <p className="text-sm text-muted">
+          <span data-testid="level-day">
+            {pos.levelDays
+              ? t('home.dayOf', { day: Math.min(pos.dayInLevel, pos.levelDays), total: pos.levelDays })
+              : t('home.dayFree', { day: pos.dayInLevel })}
+          </span>
+          {min !== null && ` · ${t('home.minutesAbout', { min })}`}
+        </p>
+        {pos.levelDays && (
+          <div className="grid gap-[5px]" style={{ gridTemplateColumns: `repeat(${pos.levelDays}, 1fr)` }} aria-label={t('home.dotsLabel', { done: doneInLevel, total: pos.levelDays })} role="img">
+            {Array.from({ length: pos.levelDays }, (_, i) => (
+              <i key={i} className={`h-1.5 rounded-full ${i < doneInLevel ? 'bg-accent' : i === doneInLevel ? 'bg-ink' : 'bg-line'}`} />
+            ))}
           </div>
-          <p className="text-right text-sm text-muted" data-testid="level-day">
-            {pos.levelDays ? t('home.dayOf', { day: Math.min(pos.dayInLevel, pos.levelDays), total: pos.levelDays }) : t('home.dayFree', { day: pos.dayInLevel })}
-          </p>
-        </div>
+        )}
+      </Card>
 
-        {today ? (
-          <p className="mt-4 rounded-2xl bg-sky/10 p-3 text-sm text-sky" data-testid="done-today">
-            {t('home.doneToday')}
-          </p>
-        ) : gap !== null && gap > 1 ? (
-          <p className="mt-4 rounded-2xl bg-indigo/10 p-3 text-sm text-indigo">
-            {t('home.resume', { level: pos.level.name, day: pos.dayInLevel })}
-          </p>
-        ) : null}
+      <WeekStrip progress={progress} />
 
-        <Button variant="primary" className="mt-4 w-full text-lg" onClick={() => navigate(`/sesion/acond/${pos.level.id}`)}>
-          {today ? t('home.repeat') : t('home.start')}
-        </Button>
-        <a href="#/progreso" className="mt-3 flex min-h-12 items-center justify-center text-sm text-muted underline-offset-4 active:underline">
+      <p className="text-sm text-muted">
+        {t('home.streakPrefix')}{' '}
+        <strong className="font-semibold text-ink">
+          <span data-testid="streak">{s}</span> {s === 1 ? t('home.day') : t('home.days')}
+        </strong>{' '}
+        · <span data-testid="completed">{count}</span> {count === 1 ? t('home.sessionDone') : t('home.sessionsDone')}
+      </p>
+
+      <Button variant="primary" className="w-full text-lg" onClick={() => navigate(`/sesion/acond/${pos.level.id}`)}>
+        {today ? t('home.repeat') : t('home.start')}
+      </Button>
+
+      <div className="flex flex-col">
+        <a href="#/progreso" className="flex min-h-12 items-center justify-center text-sm text-muted underline-offset-4 active:underline">
           {t('home.changeStart')}
         </a>
-      </Card>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Card className="p-4">
-          <p className="text-xs text-muted">{t('home.streak')}</p>
-          <p className="text-2xl font-semibold" data-testid="streak">
-            {s} <span className="text-sm font-normal text-muted">{t('home.days')}</span>
-          </p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-xs text-muted">{t('home.completed')}</p>
-          <p className="text-2xl font-semibold" data-testid="completed">
-            {count}
-          </p>
-        </Card>
-      </div>
-
-      <Card>
-        <Calendar progress={progress} />
-      </Card>
-
-      <div>
-        <Button variant="ghost" className="w-full" onClick={() => setShowLevels((v) => !v)} aria-expanded={showLevels}>
+        <button type="button" className="press flex min-h-12 items-center justify-center text-sm text-muted" onClick={() => setShowLevels((v) => !v)} aria-expanded={showLevels}>
           {t('home.otherLevel')} {showLevels ? '▴' : '▾'}
-        </Button>
+        </button>
         {showLevels && (
-          <ul className="mt-2 space-y-2">
+          <ul className="mt-1 overflow-hidden rounded-[22px] bg-card">
             {LEVELS.map((lv) => {
               const m = minutesOf(conditioningSpec(lv, settings.interval, settings.sayEvery), manifest);
               return (
-                <li key={lv.id}>
+                <li key={lv.id} className="border-t border-bg first:border-t-0">
                   <button
                     type="button"
                     onClick={() => navigate(`/sesion/acond/${lv.id}`)}
-                    className="flex min-h-14 w-full items-center justify-between rounded-2xl border border-line bg-card px-4 text-left active:bg-line"
+                    className="press flex min-h-14 w-full items-center justify-between px-5 text-left active:bg-bg"
                   >
                     <span>
-                      {lv.name} <span className="text-muted">· {t('home.countdown', { from: lv.from })}</span>
+                      {lv.name} <span className="num text-muted">· {t('home.countdown', { from: lv.from })}</span>
                     </span>
-                    {m !== null && <span className="text-sm text-muted">{t('home.minutes', { min: m })}</span>}
+                    {m !== null && <span className="num text-sm text-muted">{t('home.minutes', { min: m })}</span>}
                   </button>
                 </li>
               );
@@ -140,30 +159,61 @@ function Conditioning() {
   );
 }
 
+/** La semana actual (lunes a domingo): días hechos rellenos, hoy con un aro. */
+function WeekStrip({ progress }: { progress: Progress }) {
+  const now = new Date();
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+  const labels = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+  const todayKey = dayKey(now);
+  return (
+    <ol className="grid grid-cols-7 text-center text-xs text-muted" aria-label={t('home.weekLabel')}>
+      {labels.map((l, i) => {
+        const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+        const key = dayKey(d);
+        const done = Boolean(progress.days[key]);
+        const isToday = key === todayKey;
+        return (
+          <li key={key} data-done={done || undefined} className="flex flex-col items-center gap-1.5" aria-label={`${d.getDate()}${done ? ' ✓' : ''}${isToday ? ' (hoy)' : ''}`}>
+            <span aria-hidden>{l}</span>
+            <span
+              aria-hidden
+              className={`num flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-medium ${
+                done ? 'bg-accent text-on-accent' : 'text-ink'
+              } ${isToday ? 'shadow-[inset_0_0_0_1.5px_var(--color-ink)]' : ''}`}
+            >
+              {d.getDate()}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 function Tools() {
   const [settings] = useSettings();
   const manifest = useManifest();
   return (
-    <ul className="space-y-3">
-      {TOOLS.map((tool, i) => {
+    <ul className="overflow-hidden rounded-[22px] bg-card">
+      {TOOLS.map((tool) => {
         const min = minutesOf(toolSpec(tool, settings.interval, settings.sleepDirect), manifest);
         return (
-          <li key={tool.id}>
-            <Card>
-              <div className="flex items-start gap-4">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo/15 font-semibold text-indigo">
-                  {i + 1}
-                </span>
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold">{tool.title}</h2>
-                  <p className="text-sm text-muted">{tool.summary}</p>
-                  {min !== null && <p className="mt-1 text-xs text-muted">{t('home.minutes', { min })}</p>}
-                </div>
-              </div>
-              <Button variant="secondary" className="mt-4 w-full" onClick={() => navigate(`/sesion/tool/${tool.id}`)}>
-                {t('home.start')}
-              </Button>
-            </Card>
+          <li key={tool.id} className="border-t border-bg first:border-t-0">
+            <button
+              type="button"
+              onClick={() => navigate(`/sesion/tool/${tool.id}`)}
+              className="press flex w-full items-center gap-4 px-5 py-4 text-left active:bg-bg"
+              aria-label={`${t('home.start')}: ${tool.title}`}
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block text-[17px] font-semibold">{tool.title}</span>
+                <span className="mt-0.5 block text-sm text-muted">{tool.summary}</span>
+                {min !== null && <span className="num mt-1 block text-xs text-muted">{t('home.minutesAbout', { min })}</span>}
+              </span>
+              <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-muted" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </button>
           </li>
         );
       })}

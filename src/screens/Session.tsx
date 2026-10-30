@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AudioSession, VisualClock, type Clock } from '../audio/engine';
 import { stateAt, type TimelineState } from '../audio/timeline';
 import type { AudioManifest, PlannedSegment, TimelineEvent } from '../audio/types';
+import { descentLevel, stageColors } from '../audio/descent';
 import { BreathOrb } from '../components/BreathOrb';
 import { Button, Slider, Toggle } from '../components/ui';
 import { conditioningSpec, flattenEvents, LEVELS, planSegments, TOOLS, toolSpec, type SessionSpec } from '../data/content';
@@ -54,6 +55,20 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
   const specRef = useRef<SessionSpec | null>(null);
   const segmentsRef = useRef<PlannedSegment[]>([]);
   const finishedRef = useRef(false);
+  /** Número desde el que arranca la cuenta de esta sesión (para el descenso). */
+  const cdFromRef = useRef(10);
+
+  const depth = descentLevel(view, cdFromRef.current);
+  const stage = stageColors(depth);
+
+  // La barra de estado del teléfono toma el color del descenso durante la sesión.
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    const previous = meta.getAttribute('content') ?? '';
+    if (status === 'running') meta.setAttribute('content', stage.bg);
+    return () => meta.setAttribute('content', previous);
+  }, [status, stage.bg]);
 
   const spec = useMemo<SessionSpec | null>(() => {
     if (level) return conditioningSpec(level, settings.interval, settings.sayEvery);
@@ -164,6 +179,8 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
     }
     segmentsRef.current = segments;
     eventsRef.current = flattenEvents(segments);
+    const countdown = segments.find((sg) => sg.phase === 'countdown');
+    cdFromRef.current = Math.max(1, ...(countdown?.events ?? []).map((e) => (e.kind === 'number' ? e.value : 1)));
     // Se crea dentro del toque en "Iniciar" para que Android permita el audio.
     const session = new AudioSession(segments, manifest, current, spec.sleep);
     sessionRef.current = session;
@@ -218,7 +235,7 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
         </button>
         <div className="flex-1 overflow-y-auto">
           <h1 className="mt-2 text-2xl font-semibold">{spec.title}</h1>
-          <h2 className="mt-6 text-sm uppercase tracking-widest text-indigo">{t('session.prepTitle')}</h2>
+          <h2 className="mt-6 text-base font-semibold text-ink">{t('session.prepTitle')}</h2>
           <ol className="mt-3 space-y-3">
             {[...(tool?.instructions ?? []), ...tl('session.prep')].map((line, i) => (
               <li key={i} className="flex gap-3">
@@ -228,7 +245,7 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
             ))}
           </ol>
           {toneOn && settings.toneMode === 'binaural' && (
-            <p className="mt-5 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-200">🎧 {t('session.binauralWarning')}</p>
+            <p className="mt-5 rounded-2xl bg-notice p-3 text-sm text-notice-ink">{t('session.binauralWarning')}</p>
           )}
           {tool?.sleepOption && (
             <div className="mt-4 rounded-2xl bg-card px-4">
@@ -282,24 +299,31 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
   // ------------------------------------------------------- en curso ----
   const showNumber = view && (view.phase === 'countdown' || view.phase === 'exit') && view.number !== null;
   return (
-    <div className="safe-top safe-bottom fixed inset-0 mx-auto flex max-w-lg flex-col overflow-hidden px-5" data-testid="session-running">
+    <div
+      className="stage fixed inset-0"
+      style={{ backgroundColor: stage.bg, color: stage.ink }}
+      data-testid="session-running"
+      data-depth={depth.toFixed(2)}
+    >
+    <div className="safe-top safe-bottom mx-auto flex h-full max-w-lg flex-col overflow-hidden px-5">
       <header className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm text-muted">{spec.title}</p>
-          <p className="text-xs uppercase tracking-widest text-indigo" data-testid="phase">
+          <p className="truncate text-sm opacity-80">{spec.title}</p>
+          <p className="text-sm font-semibold" data-testid="phase">
             {view ? t(`session.phases.${view.phase}`) : ''}
           </p>
         </div>
-        <button type="button" onClick={() => setShowVolumes((v) => !v)} aria-expanded={showVolumes} className="min-h-12 rounded-xl px-3 text-sm text-muted active:bg-card">
+        <button type="button" onClick={() => setShowVolumes((v) => !v)} aria-expanded={showVolumes} className={`press min-h-12 rounded-full px-4 text-sm ${stageBtn}`}>
           {t('session.volumes')}
         </button>
       </header>
-      <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-card" aria-hidden>
-        <div className="h-full bg-gradient-to-r from-sky to-indigo" style={{ width: `${Math.min(100, fraction * 100)}%` }} />
+      <div className="relative mt-3 h-0.5 w-full rounded-full" aria-hidden>
+        <div className="absolute inset-0 rounded-full bg-current opacity-20" />
+        <div className="absolute inset-y-0 left-0 rounded-full bg-current" style={{ width: `${Math.min(100, fraction * 100)}%` }} />
       </div>
 
       {showVolumes && (
-        <div className="mt-3 space-y-1 rounded-2xl bg-card p-4">
+        <div className="mt-3 space-y-1 rounded-[22px] bg-card p-4 text-ink">
           <Slider
             label={t('session.voice')}
             value={settings.voiceVolume}
@@ -322,59 +346,76 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
       )}
 
       {suspendedNotice && (
-        <p className="mt-3 rounded-2xl bg-amber-300/10 p-3 text-sm text-amber-200" onClick={() => setSuspendedNotice(false)}>
+        <button type="button" className="mt-3 rounded-2xl bg-notice p-3 text-left text-sm text-notice-ink" onClick={() => setSuspendedNotice(false)}>
           {t('session.suspended')}
-        </p>
+        </button>
       )}
 
       <main className="flex flex-1 flex-col items-center justify-center text-center">
         {showNumber ? (
-          <p className="font-light tabular-nums leading-none text-ink" style={{ fontSize: 'min(42vw, 11rem)' }} data-testid="big-number" aria-live="off">
+          <p className="num font-light leading-none tracking-[-0.04em]" style={{ fontSize: 'min(44vw, 11.5rem)' }} data-testid="big-number" aria-live="off">
             {view!.number}
           </p>
         ) : (
           <BreathOrb breath={view?.breath ?? null} />
         )}
-        {view?.breath && <p className="mt-6 text-lg text-sky">{t(`session.breath.${view.breath.value}`)}</p>}
+        {view?.breath && <p className="mt-6 text-lg font-medium">{t(`session.breath.${view.breath.value}`)}</p>}
         {(settings.showCaptions || visualOnly) && view?.caption && view.phase !== 'countdown' && (
-          <p className="mt-6 min-h-[4.5rem] max-w-sm text-lg leading-relaxed text-ink/80" data-testid="caption">
+          <p className="mt-6 min-h-[4.5rem] max-w-sm text-lg leading-relaxed opacity-85" data-testid="caption">
             {view.caption}
           </p>
         )}
       </main>
 
-      <footer className="grid grid-cols-3 gap-3 pb-2">
+      <footer className="grid grid-cols-[1fr_1.3fr_1fr] gap-2 pb-2">
         {confirmStop ? (
           <>
-            <p className="col-span-3 text-center text-sm text-muted">{t('session.stopConfirm')}</p>
-            <Button onClick={() => setConfirmStop(false)}>{t('update.later')}</Button>
-            <Button variant="danger" className="col-span-2" onClick={stop}>
-              {t('session.stop')}
-            </Button>
+            <p className="col-span-3 pb-1 text-center text-sm opacity-85">{t('session.stopConfirm')}</p>
+            <button type="button" className={`press min-h-14 rounded-full text-[15px] ${stageBtn}`} onClick={() => setConfirmStop(false)}>
+              {t('update.later')}
+            </button>
+            <button type="button" className="press col-span-2 min-h-14 rounded-full bg-current text-[15px] font-semibold" onClick={stop}>
+              <span style={{ color: stage.bg }}>{t('session.stop')}</span>
+            </button>
           </>
         ) : (
           <>
-            <Button variant="danger" onClick={() => setConfirmStop(true)}>
+            <button type="button" className={`press min-h-14 rounded-full text-[15px] ${stageBtn}`} onClick={() => setConfirmStop(true)}>
               {t('session.stop')}
-            </Button>
-            <Button variant="primary" onClick={paused ? resume : pause} data-testid="pause">
-              {paused ? t('session.resume') : t('session.pause')}
-            </Button>
-            <Button onClick={() => setEyesClosed(true)}>{t('session.eyesClosed')}</Button>
+            </button>
+            <button type="button" className="press min-h-14 rounded-full bg-current text-[15px] font-semibold" onClick={paused ? resume : pause} data-testid="pause">
+              <span className="stage" style={{ color: stage.bg }}>{paused ? t('session.resume') : t('session.pause')}</span>
+            </button>
+            <button type="button" className={`press min-h-14 rounded-full px-3 text-[14px] leading-tight ${stageBtn}`} onClick={() => setEyesClosed(true)}>
+              {t('session.eyesClosed')}
+            </button>
           </>
         )}
       </footer>
 
       {eyesClosed && <EyesClosed number={showNumber ? view!.number : null} onExit={() => setEyesClosed(false)} />}
     </div>
+    </div>
   );
 }
+
+/** Botón secundario sobre el color del descenso: solo un contorno, así el texto conserva el contraste del fondo. */
+const stageBtn = 'shadow-[inset_0_0_0_1.5px_color-mix(in_srgb,currentColor_45%,transparent)]';
 
 /** Pantalla casi negra pero encendida. Doble toque para salir. */
 function EyesClosed({ number, onExit }: { number: number | null; onExit: () => void }) {
   const last = useRef(0);
+  // Escape también sale (teclado o lector de pantalla); el doble toque evita salir por error.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onExit();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onExit]);
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={t('session.eyesClosedHint')}
       className="fixed inset-0 z-30 flex flex-col items-center justify-center bg-black"
       onClick={() => {
         const now = Date.now();

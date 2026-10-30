@@ -35,7 +35,11 @@ test('funciona sin conexión después de la primera visita', async ({ page, cont
   // --- Sin red ---
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Alfa Mind Engine' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /Buen(os|as) (días|tardes|noches)/ })).toBeVisible();
+  // La tipografía propia también sale del caché (si no, caería a la del sistema).
+  await expect
+    .poll(() => page.evaluate(() => [...document.fonts].some((f) => f.family.includes('Figtree') && f.status === 'loaded')))
+    .toBe(true);
   for (const [hash, text] of [
     ['/herramientas', 'Pantalla Mental'],
     ['/progreso', 'Tu progreso'],

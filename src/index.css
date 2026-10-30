@@ -1,19 +1,40 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/figtree/wght.css';
 
+/* Niebla de alba: la luz gris azulada antes del amanecer.
+   Un fondo de niebla, una superficie un tono más clara, tinta azul petróleo y un solo acento.
+   La sesión baja de la niebla al mar de noche (ver --stage-*). */
 @theme {
-  --color-bg: #0f172a;
-  --color-card: #172036;
-  --color-line: #263049;
-  --color-ink: #e2e8f0;
-  --color-muted: #94a3b8;
-  --color-sky: #38bdf8;
-  --color-indigo: #818cf8;
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+  --color-bg: #e9eff0;
+  --color-card: #f8fafa;
+  --color-line: #d2dcdd;
+  --color-ink: #14262b;
+  --color-muted: #4b5f64;
+  --color-accent: #2b6b73;
+  --color-on-accent: #f4fafa;
+  --color-notice: #fbf3dc;
+  --color-notice-ink: #6b4a0f;
+  --color-danger: #a3323b;
+
+  /* El descenso: superficie → medio saturado → profundo. */
+  --color-stage-0: #dbe6e8;
+  --color-stage-m: #3f7c84;
+  --color-stage-1: #0d2328;
+  --color-stage-ink-0: #14262b;
+  --color-stage-ink-1: #d4e6e8;
+
+  --font-sans: 'Figtree Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
+}
+
+html {
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
 }
 
 html,
@@ -23,12 +44,38 @@ body,
   background: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  overscroll-behavior: none;
 }
 
 body {
   -webkit-font-smoothing: antialiased;
+}
+
+button,
+a,
+[role='button'],
+[role='tab'],
+[role='radio'],
+[role='switch'] {
   touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Respuesta al toque: al apoyar el dedo, no al soltarlo. */
+.press {
+  transition:
+    transform 140ms var(--ease-out),
+    background-color 140ms ease;
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+input,
+textarea,
+select {
+  font-size: 16px;
 }
 
 .safe-top {
@@ -38,39 +85,52 @@ body {
   padding-bottom: max(env(safe-area-inset-bottom), 12px);
 }
 
-/* Respiración: un ciclo lento de 10 s cuando no hay guía de la voz. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Respiración: un ciclo lento de 10 s cuando la voz no marca el ritmo. */
 @keyframes breathe {
   0%,
   100% {
     transform: scale(0.72);
-    opacity: 0.55;
   }
   45%,
   55% {
     transform: scale(1);
-    opacity: 0.9;
   }
 }
 .breathe-idle {
   animation: breathe 10s ease-in-out infinite;
 }
 
+/* El fondo de la sesión cambia despacio, número a número. */
+.stage {
+  transition:
+    background-color 1.2s ease,
+    color 1.2s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .breathe-idle {
     animation: none;
   }
-  .orb {
+  .orb,
+  .press,
+  .stage {
     transition: none !important;
+  }
+  .orb {
     transform: none !important;
   }
 }
 
 input[type='range'] {
-  accent-color: var(--color-sky);
+  accent-color: var(--color-accent);
   height: 44px;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-sky);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }

@@ -3,6 +3,7 @@ import { t } from './i18n';
 import { UpdateToast } from './components/UpdateToast';
 import { Home } from './screens/Home';
 import { SessionScreen } from './screens/Session';
+import { JournalScreen } from './screens/Journal';
 import { ProgressScreen } from './screens/Progress';
 import { SettingsScreen } from './screens/Settings';
 import { AboutScreen } from './screens/About';
@@ -11,6 +12,7 @@ import { AboutScreen } from './screens/About';
 export type Route =
   | { name: 'home'; tab: 'acond' | 'tools' }
   | { name: 'progress' }
+  | { name: 'journal' }
   | { name: 'settings' }
   | { name: 'about' }
   | { name: 'session'; kind: 'acond' | 'tool'; id: string };
@@ -20,6 +22,8 @@ function parse(hash: string): Route {
   switch (parts[0]) {
     case 'herramientas':
       return { name: 'home', tab: 'tools' };
+    case 'registro':
+      return { name: 'journal' };
     case 'progreso':
       return { name: 'progress' };
     case 'ajustes':
@@ -46,6 +50,7 @@ function useRoute(): Route {
 
 const NAV = [
   { path: '/', label: t('nav.home'), icon: 'M3 11l9-8 9 8v10a1 1 0 01-1 1h-5v-7H9v7H4a1 1 0 01-1-1z', match: 'home' },
+  { path: '/registro', label: t('nav.journal'), icon: 'M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z', match: 'journal' },
   { path: '/progreso', label: t('nav.progress'), icon: 'M4 5h16v16H4zM4 9h16M9 3v4M15 3v4', match: 'progress' },
   { path: '/ajustes', label: t('nav.settings'), icon: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4', match: 'settings' },
   { path: '/acerca', label: t('nav.about'), icon: 'M12 22a10 10 0 100-20 10 10 0 000 20zM12 16v-5M12 8h0', match: 'about' },
@@ -77,6 +82,7 @@ function Shell({ route }: { route: Exclude<Route, { name: 'session' }> }) {
       <main className="safe-top flex-1 px-5 pb-28">
         {route.name === 'home' && <Home tab={route.tab} />}
         {route.name === 'progress' && <ProgressScreen />}
+        {route.name === 'journal' && <JournalScreen />}
         {route.name === 'settings' && <SettingsScreen />}
         {route.name === 'about' && <AboutScreen />}
       </main>
@@ -84,7 +90,7 @@ function Shell({ route }: { route: Exclude<Route, { name: 'session' }> }) {
         aria-label="Principal"
         className="safe-bottom fixed inset-x-0 bottom-0 z-10 bg-bg shadow-[0_-1px_0_var(--color-line)]"
       >
-        <ul className="mx-auto grid max-w-lg grid-cols-4">
+        <ul className="mx-auto grid max-w-lg grid-cols-5">
           {NAV.map((n) => {
             const active = route.name === n.match;
             return (

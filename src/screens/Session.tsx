@@ -297,7 +297,12 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
               ? t('session.doneConditioning', { streak: s, days: t('home.days') })
               : t('session.doneTool')}
         </p>
-        <Button variant="primary" className="w-full" onClick={() => navigate('/')}>
+        {spec.toolId === 'sintonia-10' && (
+          <Button variant="primary" className="w-full" onClick={() => navigate('/registro')}>
+            {t('journal.goToJournal')}
+          </Button>
+        )}
+        <Button variant={spec.toolId === 'sintonia-10' ? 'secondary' : 'primary'} className="w-full" onClick={() => navigate('/')}>
           {t('session.back')}
         </Button>
       </div>

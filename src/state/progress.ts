@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { LEVELS, type Level } from '../data/content';
+import { getJournal, replaceJournal, type Journal } from './journal';
 import { getSettings, replaceSettings, type Settings } from './settings';
 import { readJson, writeJson } from './storage';
 
@@ -148,10 +149,12 @@ export interface Backup {
   exportedAt: string;
   progress: Progress;
   settings: Settings;
+  /** Registro nocturno (desde la versión 1.5). */
+  journal?: Journal;
 }
 
 export function makeBackup(): Backup {
-  return { app: 'alfa-mind-engine', version: 1, exportedAt: new Date().toISOString(), progress: current, settings: getSettings() };
+  return { app: 'alfa-mind-engine', version: 1, exportedAt: new Date().toISOString(), progress: current, settings: getSettings(), journal: getJournal() };
 }
 
 export function restoreBackup(text: string): { days: number } {
@@ -166,5 +169,6 @@ export function restoreBackup(text: string): { days: number } {
   const startLevelId = LEVELS.some((l) => l.id === data.progress!.startLevelId) ? data.progress.startLevelId : undefined;
   save({ version: 1, days, tools: Array.isArray(data.progress.tools) ? data.progress.tools : [], startLevelId });
   if (data.settings) replaceSettings(data.settings);
+  if (data.journal) replaceJournal(data.journal);
   return { days: Object.keys(days).length };
 }

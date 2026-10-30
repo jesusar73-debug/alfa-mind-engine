@@ -14,6 +14,7 @@ import {
   useProgress,
   type Progress,
 } from '../state/progress';
+import { useJournal } from '../state/journal';
 import { useSettings } from '../state/settings';
 
 function greeting(now = new Date()): string {
@@ -48,6 +49,8 @@ export function Home({ tab }: { tab: 'acond' | 'tools' }) {
           </p>
         </div>
       </header>
+
+      <JournalReminder />
 
       <div role="tablist" className="flex gap-6">
         {(
@@ -218,5 +221,18 @@ function Tools() {
         );
       })}
     </ul>
+  );
+}
+
+/** De 6 de la tarde en adelante, si hoy no hay nada anotado, recuerda el registro nocturno. */
+function JournalReminder() {
+  const journal = useJournal();
+  const now = new Date();
+  if (now.getHours() < 18 || journal.entries[dayKey(now)]) return null;
+  return (
+    <a href="#/registro" className="press flex min-h-14 items-center justify-between gap-3 rounded-[22px] bg-card px-5 py-3" data-testid="journal-reminder">
+      <span className="font-medium">{t('journal.reminder')}</span>
+      <span className="text-sm font-semibold text-accent">{t('journal.goToJournal')} ›</span>
+    </a>
   );
 }

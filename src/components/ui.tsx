@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -25,8 +25,12 @@ export function Button({
 }
 
 /** Superficie un tono más clara que el fondo; sin borde ni sombra. */
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-[22px] bg-card p-5 ${className}`}>{children}</section>;
+export function Card({ children, className = '', ...rest }: HTMLAttributes<HTMLElement> & { children: ReactNode }) {
+  return (
+    <section className={`rounded-[22px] bg-card p-5 ${className}`} {...rest}>
+      {children}
+    </section>
+  );
 }
 
 export function Segmented<T extends string | number>({

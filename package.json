@@ -1,6 +1,6 @@
 {
   "name": "alfa-mind-engine",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Entrenador guiado de relajación y visualización (PWA offline)",
   "scripts": {
     "dev": "vite",

@@ -55,10 +55,17 @@ test('funciona sin conexión después de la primera visita', async ({ page, cont
     const bad: string[] = [];
     for (const f of files) {
       const r = await fetch(f).catch(() => null);
-      if (!r || !r.ok || (await r.blob()).size < 1000) bad.push(f);
+      if (!r || !r.ok || (await r.blob()).size < (f.endsWith('.json') ? 50 : 1000)) bad.push(f);
     }
     return bad;
-  }, [...Object.values(manifest.segments).map((s) => (s as { file: string }).file)]);
+  }, [
+    ...Object.values(manifest.segments).map((s) => (s as { file: string }).file),
+    // Las grabaciones de ambiente y sus créditos también están guardadas.
+    'ambient/lluvia.flac',
+    'ambient/rio.flac',
+    'ambient/viento.flac',
+    'ambient/credits.json',
+  ]);
   expect(failures).toEqual([]);
 
   // Una sesión real suena offline (el reloj del audio avanza).

@@ -1,6 +1,6 @@
-// Sonidos de ambiente generados en el teléfono: sin archivos, sin descargas, sin licencias.
-// Cada uno se sintetiza una vez con un OfflineAudioContext (ruido filtrado y modulado)
-// como un bucle de LOOP_S segundos con la unión fundida, así repite sin cortes.
+// Sonidos de ambiente: grabaciones reales de Wikimedia Commons (lluvia, río, viento) en bucle.
+// Si una grabación no carga, se usa el sonido sintetizado en el teléfono (ruido filtrado y
+// modulado, bucle de LOOP_S segundos con la unión fundida) como respaldo.
 
 import { getMixer, setGain, sliderToGain } from './mixer';
 
@@ -134,46 +134,69 @@ function build(ctx: OfflineAudioContext, kind: Exclude<AmbientKind, 'ninguno'>, 
 
 const cache = new Map<AmbientKind, Promise<AudioBuffer>>();
 
+/** Estéreo a partir de mono: el canal derecho es el izquierdo corrido 17 ms (en bucle). Da amplitud sin cambiar el sonido. */
+function toStereo(mono: Float32Array, sampleRate: number, gain = 1): AudioBuffer {
+  const n = mono.length;
+  const out = new AudioBuffer({ numberOfChannels: 2, length: n, sampleRate });
+  const L = out.getChannelData(0);
+  const R = out.getChannelData(1);
+  const shift = Math.round(0.017 * sampleRate);
+  for (let i = 0; i < n; i++) {
+    L[i] = Math.max(-1, Math.min(1, mono[i] * gain));
+    R[i] = Math.max(-1, Math.min(1, mono[(i + n - shift) % n] * gain));
+  }
+  return out;
+}
+
 /**
- * Genera (una vez por sesión de la app) el bucle estéreo del sonido.
- * Se renderiza LOOP_S + SEAM_S y la cola se funde sobre el inicio: el final empalma con el principio.
+ * Grabación real del ambiente (public/ambient/<sonido>.flac): un bucle de 40 s ya preparado
+ * en tools/build_ambient.py. FLAC no agrega silencio al final, así el empalme es exacto.
+ */
+async function recordedBuffer(kind: Exclude<AmbientKind, 'ninguno'>): Promise<AudioBuffer> {
+  const res = await fetch(`${import.meta.env.BASE_URL}ambient/${kind}.flac`);
+  if (!res.ok) throw new Error(`ambiente ${kind}: HTTP ${res.status}`);
+  const data = await res.arrayBuffer();
+  let decoded: AudioBuffer;
+  try {
+    decoded = await new OfflineAudioContext(1, 1, 32000).decodeAudioData(data.slice(0));
+  } catch {
+    decoded = await getMixer().ctx.decodeAudioData(data);
+  }
+  return toStereo(decoded.getChannelData(0), decoded.sampleRate);
+}
+
+/**
+ * Bucle estéreo del ambiente, una vez por sesión de la app.
+ * Primero la grabación real; si no carga (p. ej. caché incompleta), el sonido generado en el teléfono.
  */
 export function ambientBuffer(kind: Exclude<AmbientKind, 'ninguno'>): Promise<AudioBuffer> {
   let p = cache.get(kind);
   if (!p) {
-    p = (async () => {
-      const total = LOOP_S + SEAM_S;
-      const off = new OfflineAudioContext(1, Math.ceil(total * SR), SR);
-      build(off, kind, total);
-      const rendered = (await off.startRendering()).getChannelData(0);
-      const n = LOOP_S * SR;
-      const seam = SEAM_S * SR;
-      const mono = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        if (i < seam) {
-          const w = i / seam; // fundido de igual potencia
-          mono[i] = rendered[i] * Math.sin((w * Math.PI) / 2) + rendered[n + i] * Math.cos((w * Math.PI) / 2);
-        } else mono[i] = rendered[i];
-      }
-      // Nivel parejo entre sonidos.
-      let sum = 0;
-      for (let i = 0; i < n; i++) sum += mono[i] * mono[i];
-      const gain = TARGET_RMS / Math.max(1e-6, Math.sqrt(sum / n));
-      // Estéreo: el canal derecho es el izquierdo corrido 17 ms (en bucle), da amplitud sin cambiar el sonido.
-      const out = new AudioBuffer({ numberOfChannels: 2, length: n, sampleRate: SR });
-      const L = out.getChannelData(0);
-      const R = out.getChannelData(1);
-      const shift = Math.round(0.017 * SR);
-      for (let i = 0; i < n; i++) {
-        L[i] = Math.max(-1, Math.min(1, mono[i] * gain));
-        R[i] = Math.max(-1, Math.min(1, mono[(i + n - shift) % n] * gain));
-      }
-      return out;
-    })();
+    p = recordedBuffer(kind).catch(() => synthesizedBuffer(kind));
     cache.set(kind, p);
     p.catch(() => cache.delete(kind));
   }
   return p;
+}
+
+/** Respaldo: el sonido sintetizado (ruido filtrado y modulado) con la unión fundida. */
+async function synthesizedBuffer(kind: Exclude<AmbientKind, 'ninguno'>): Promise<AudioBuffer> {
+  const total = LOOP_S + SEAM_S;
+  const off = new OfflineAudioContext(1, Math.ceil(total * SR), SR);
+  build(off, kind, total);
+  const rendered = (await off.startRendering()).getChannelData(0);
+  const n = LOOP_S * SR;
+  const seam = SEAM_S * SR;
+  const mono = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    if (i < seam) {
+      const w = i / seam; // fundido de igual potencia
+      mono[i] = rendered[i] * Math.sin((w * Math.PI) / 2) + rendered[n + i] * Math.cos((w * Math.PI) / 2);
+    } else mono[i] = rendered[i];
+  }
+  let sum = 0;
+  for (let i = 0; i < n; i++) sum += mono[i] * mono[i];
+  return toStereo(mono, SR, TARGET_RMS / Math.max(1e-6, Math.sqrt(sum / n)));
 }
 
 /** WAV de 16 bits, para el modo compatibilidad (<audio loop>, sin Web Audio). */

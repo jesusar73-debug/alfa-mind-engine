@@ -1,0 +1,26 @@
+{
+ "lluvia": {
+  "title": "Rain on leaves (Gravity Sound).wav",
+  "author": "Gravity Sound",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Rain_on_leaves_(Gravity_Sound).wav",
+  "changes": "Recortado a 40 s, en bucle y nivelado."
+ },
+ "rio": {
+  "title": "433589 jackthemurray stream-river-water-up-close.wav",
+  "author": "jackthemurray",
+  "license": "CC0",
+  "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "source": "https://commons.wikimedia.org/wiki/File:433589_jackthemurray_stream-river-water-up-close.wav",
+  "changes": "Recortado a 40 s, en bucle y nivelado."
+ },
+ "viento": {
+  "title": "20090610 0 ambience.ogg",
+  "author": "nille",
+  "license": "Public domain",
+  "licenseUrl": "",
+  "source": "https://commons.wikimedia.org/wiki/File:20090610_0_ambience.ogg",
+  "changes": "Recortado a 40 s, en bucle y nivelado."
+ }
+}

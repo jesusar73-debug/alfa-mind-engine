@@ -5,7 +5,7 @@ test.beforeEach(async ({ page }) => {
   await enableDebug(page);
 });
 
-test('los tres ambientes se generan como bucles sin corte y a nivel parejo', async ({ page }) => {
+test('los tres ambientes son grabaciones reales en bucle sin corte y a nivel parejo', async ({ page }) => {
   await startSession(page, '/sesion/acond/rapido');
   const stats = await page.evaluate(async () => {
     const out: Record<string, { seconds: number; channels: number; rms: number; peak: number; seam: number; typical: number }> = {};
@@ -33,13 +33,22 @@ test('los tres ambientes se generan como bucles sin corte y a nivel parejo', asy
     return out;
   });
   for (const [kind, s] of Object.entries(stats)) {
-    expect(s.seconds, kind).toBeCloseTo(24, 1);
+    expect(s.seconds, `${kind}: la grabación real (40 s), no el respaldo sintetizado (24 s)`).toBeCloseTo(40, 1);
     expect(s.channels, kind).toBe(2);
-    expect(s.rms, kind).toBeGreaterThan(0.08);
+    expect(s.rms, kind).toBeGreaterThan(0.06);
     expect(s.rms, kind).toBeLessThan(0.16);
     expect(s.peak, kind).toBeLessThanOrEqual(1);
     expect(s.seam, `${kind}: la unión del bucle no debe dar un salto`).toBeLessThan(s.typical * 8 + 0.01);
   }
+});
+
+test('Acerca de muestra autor y licencia de cada grabación de ambiente', async ({ page }) => {
+  await page.goto('/#/acerca');
+  const credits = page.getByTestId('ambient-credits');
+  await expect(credits).toContainText('Gravity Sound');
+  await expect(credits).toContainText('CC BY 4.0');
+  await expect(credits).toContainText('jackthemurray');
+  await expect(credits.getByRole('link', { name: 'CC BY 4.0' })).toHaveAttribute('href', /creativecommons\.org\/licenses\/by\/4\.0/);
 });
 
 test('el mezclador se guarda: ambiente, pulso y volúmenes', async ({ page }) => {

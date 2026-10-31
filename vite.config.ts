@@ -39,7 +39,7 @@ export default defineConfig({
       },
       workbox: {
         // Precache total: código, íconos, audios y timelines.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,json,mp3,wav,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,json,mp3,wav,woff2,flac}'],
         maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         // Toma control desde la primera visita (las actualizaciones siguen esperando al usuario).

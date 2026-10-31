@@ -10,7 +10,8 @@
     "build:icons": "node tools/run-python.mjs tools/make_icons.py",
     "verify:sync": "node tools/run-python.mjs tools/verify_sync.py",
     "test": "playwright test",
-    "audit": "node tools/lighthouse.mjs"
+    "audit": "node tools/lighthouse.mjs",
+    "build:ambient": "node tools/run-python.mjs tools/build_ambient.py"
   },
   "license": "UNLICENSED",
   "type": "module",

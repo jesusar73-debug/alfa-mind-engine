@@ -200,6 +200,8 @@ export const es = {
     credits: 'Créditos',
     voiceCredit:
       'Voz guía generada con ElevenLabs (voz “Matilda”, modelo Eleven v4) a través de OpenRouter.',
+    ambientCredits: 'Sonidos de ambiente (grabaciones de Wikimedia Commons, recortadas, en bucle y niveladas):',
+    ambientKinds: { lluvia: 'Lluvia', rio: 'Río', viento: 'Viento' },
     version: 'Versión {v}',
     storage: 'Audio offline: {mb} MB',
     diagTitle: 'Diagnóstico de la última sesión',

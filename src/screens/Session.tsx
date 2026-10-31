@@ -4,6 +4,7 @@ import { stateAt, type TimelineState } from '../audio/timeline';
 import type { AudioManifest, PlannedSegment, TimelineEvent } from '../audio/types';
 import { ambientBuffer } from '../audio/ambient';
 import { descentLevel, stageColors } from '../audio/descent';
+import { getMixer, hasMixer, type Mixer as AudioMixer } from '../audio/mixer';
 import { BreathOrb } from '../components/BreathOrb';
 import { Mixer } from '../components/Mixer';
 import { Button, Toggle } from '../components/ui';
@@ -20,7 +21,7 @@ type Status = 'prep' | 'loading' | 'running' | 'done' | 'error';
 
 declare global {
   interface Window {
-    __ame?: { clock: Clock; events: TimelineEvent[]; session: AudioSession | null; segments: PlannedSegment[]; ambientBuffer: typeof ambientBuffer };
+    __ame?: { clock: Clock; events: TimelineEvent[]; session: AudioSession | null; segments: PlannedSegment[]; ambientBuffer: typeof ambientBuffer; mixer?: AudioMixer };
   }
 }
 
@@ -193,7 +194,7 @@ export function SessionScreen({ kind, id }: { kind: 'acond' | 'tool'; id: string
     const session = new AudioSession(segments, current, spec.sleep, { toneStartAt: spec.toneStartAt, bedFadeOutS: spec.bedFadeOutS });
     sessionRef.current = session;
     clockRef.current = session;
-    if (debugEnabled()) window.__ame = { clock: session, events: eventsRef.current, session, segments, ambientBuffer };
+    if (debugEnabled()) window.__ame = { clock: session, events: eventsRef.current, session, segments, ambientBuffer, mixer: hasMixer() ? getMixer() : undefined };
     session.onFinished = finish;
     session.onSuspended = () => setSuspendedNotice(true);
     session.onExternalPause = () => {

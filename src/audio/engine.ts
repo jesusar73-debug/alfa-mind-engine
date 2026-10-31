@@ -116,7 +116,6 @@ export class AudioSession implements Clock {
       // Se arma en silencio ahora (dentro del toque en Iniciar) aunque entre más tarde:
       // así nunca hay que arrancar un reproductor nuevo con la pantalla apagada.
       this.tone.prime?.();
-      if (!this.timing.toneStartAt) this.startTone();
     }
     this.ambient = await this.makeAmbient(this.ambientKind);
     this.ambient?.start(BED_FADE_IN_S);
@@ -126,6 +125,9 @@ export class AudioSession implements Clock {
       }`,
     );
     await this.player.play();
+    // Las ondas entran cuando la voz YA suena: startTone() pausa el tono si la voz está en pausa,
+    // y antes de play() la voz todavía figura en pausa (así se quedaban mudas desde v1.4).
+    if (this.tone && !this.timing.toneStartAt) this.startTone();
   }
 
   pause() {

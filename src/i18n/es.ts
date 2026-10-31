@@ -186,7 +186,7 @@ export const es = {
     engineCompat: 'Compatibilidad',
     engineHint: 'Usa “Compatibilidad” si el sonido se corta al bloquear la pantalla.',
     captions: 'Mostrar el texto de la voz',
-    voiceName: 'Voz: Daniela (español latino)',
+    voiceName: 'Voz guía: Matilda, calmada y pausada',
     test: 'Probar tono 5 s',
   },
   about: {
@@ -199,7 +199,7 @@ export const es = {
     ],
     credits: 'Créditos',
     voiceCredit:
-      'Voz sintetizada con Piper TTS (voz es_AR “daniela”, entrenada con el corpus OpenSLR 61 de Google, licencia CC BY-SA 4.0).',
+      'Voz guía generada con ElevenLabs (voz “Matilda”, modelo Eleven v4) a través de OpenRouter.',
     version: 'Versión {v}',
     storage: 'Audio offline: {mb} MB',
     diagTitle: 'Diagnóstico de la última sesión',

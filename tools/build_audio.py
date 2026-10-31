@@ -1,6 +1,7 @@
 """Pipeline de audio de Alfa Mind Engine.
 
-Lee content/scripts/*.json y content/levels.json, sintetiza cada frase con Piper,
+Lee content/scripts/*.json y content/levels.json, sintetiza cada frase con la voz elegida
+(OpenRouter · ElevenLabs v4 Matilda; o Piper con AME_TTS=piper),
 arma cada segmento con silencios exactos (a nivel de muestra), normaliza a -18 LUFS,
 codifica MP3 mono y escribe public/audio/manifest.json con los tiempos reales.
 
@@ -20,6 +21,10 @@ from pathlib import Path
 
 import numpy as np
 
+sys.stdout.reconfigure(encoding="utf-8")  # la consola de Windows no imprime ≈ ni acentos por defecto
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import tts_openrouter  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
 SCRIPTS = CONTENT / "scripts"
@@ -28,8 +33,12 @@ CACHE = ROOT / ".cache" / "tts"
 TMP = ROOT / ".cache" / "build"
 OUT = ROOT / "public" / "audio"
 
+# Motor de voz: "openrouter" (Matilda, desde el 30-oct-2026) o "piper" (Daniela, la voz anterior).
+import os  # noqa: E402
+ENGINE = os.environ.get("AME_TTS", "openrouter")
+SR = 22050                   # todo el audio de voz a 22 050 Hz (el retardo del codificador se midió así)
 VOICE = "es_AR-daniela-high"
-LENGTH_SCALE = 1.67          # velocidad elegida ("B")
+LENGTH_SCALE = 1.67          # velocidad de Piper elegida ("B")
 MIN_LENGTH_SCALE = 1.0       # límite al acelerar números largos para que quepan
 BITRATE = "64k"
 TARGET_LUFS = -18.0
@@ -62,11 +71,24 @@ def voice():
 
 
 def sample_rate() -> int:
-    return voice().config.sample_rate
+    return SR
 
 
-def synth(text: str, length_scale: float = LENGTH_SCALE) -> np.ndarray:
-    """Devuelve audio float32 mono, recortado de silencios, con caché en disco."""
+DURATIONS: list[tuple[str, float]] = []  # (texto, segundos) para detectar clips raros
+
+
+def synth(text: str, speed: float = 1.0) -> np.ndarray:
+    """Audio float32 mono a SR, recortado de silencios. speed > 1 lo dice más rápido (para que quepa)."""
+    if ENGINE == "openrouter":
+        audio = trim(tts_openrouter.synth(text, SR, speed))
+        if speed == 1.0:
+            DURATIONS.append((text, audio.size / SR))
+        return audio
+    return synth_piper(text, max(MIN_LENGTH_SCALE, LENGTH_SCALE / speed))
+
+
+def synth_piper(text: str, length_scale: float = LENGTH_SCALE) -> np.ndarray:
+    """Voz anterior (Piper, Daniela). Con caché en disco."""
     key = hashlib.sha1(f"{VOICE}|{length_scale:.3f}|{text}".encode()).hexdigest()
     cached = CACHE / f"{key}.npy"
     if cached.exists():
@@ -75,7 +97,10 @@ def synth(text: str, length_scale: float = LENGTH_SCALE) -> np.ndarray:
 
     cfg = SynthesisConfig(length_scale=length_scale)
     chunks = [c.audio_float_array for c in voice().synthesize(text, syn_config=cfg)]
-    audio = trim(np.concatenate(chunks).astype(np.float32))
+    audio = np.concatenate(chunks).astype(np.float32)
+    if voice().config.sample_rate != SR:
+        raise RuntimeError("La voz de Piper no está a 22 050 Hz")
+    audio = trim(audio)
     CACHE.mkdir(parents=True, exist_ok=True)
     np.save(cached, audio)
     return audio
@@ -123,7 +148,8 @@ class Segment:
 
 def add_frase(seg: Segment, frase: dict) -> None:
     """Agrega una frase y su pausa, con sus eventos (texto, respiración, número)."""
-    clip = synth(frase.get("voz", frase["texto"]))  # "voz": cómo pronunciarlo si difiere del texto
+    # "voz": arreglo de pronunciación solo para Piper (p. ej. slide → eslaid); ElevenLabs lee el texto tal cual.
+    clip = synth(frase.get("voz", frase["texto"]) if ENGINE == "piper" else frase["texto"])
     start = seg.t()
     dur = clip.size / seg.sr
     pause = frase.get("pausa_ms", 0) / 1000
@@ -176,17 +202,29 @@ def build_phased(seg: Segment, data: dict) -> Segment:
     return seg
 
 
+OVERFLOWS: list[str] = []  # números que no cupieron ni acelerados (se reportan al final)
+
+
+def number_text(n: int) -> str:
+    """Piper expande las cifras solo; ElevenLabs necesita las palabras (si no, puede leerlas en inglés)."""
+    if ENGINE == "piper":
+        return f"{n}."
+    w = tts_openrouter.numero_en_palabras(n)
+    return w[0].upper() + w[1:] + "."
+
+
 def fit_number(n: int, interval: float) -> np.ndarray:
-    """Sintetiza un número; si no cabe en el intervalo, lo dice más rápido."""
-    text = f"{n}."
-    clip = synth(text)
+    """Sintetiza un número; si no cabe en el intervalo, lo dice un poco más rápido (sin cambiar el tono)."""
+    text = number_text(n)
     limit = interval * NUMBER_FIT
-    scale = LENGTH_SCALE
-    while clip.size / sample_rate() > limit and scale > MIN_LENGTH_SCALE:
-        scale = max(MIN_LENGTH_SCALE, round(scale * limit / (clip.size / sample_rate()) - 0.02, 3))
-        clip = synth(text, scale)
+    clip = synth(text)
+    for speed in (1.08, 1.16, 1.25, 1.35, 1.45):
+        if clip.size / sample_rate() <= limit:
+            break
+        clip = synth(text, speed)
     if clip.size / sample_rate() > interval - 0.1:
-        raise ValueError(f"El número {n} no cabe en {interval}s ni acelerado.")
+        OVERFLOWS.append(f"{n} a {interval:g} s ({clip.size / sample_rate():.2f} s)")
+        clip = clip[: int((interval - 0.1) * sample_rate())]  # recorte de emergencia; se reporta
     return clip
 
 
@@ -198,7 +236,7 @@ def build_countdown(start: int, interval: float, every: int) -> Segment:
     seg = Segment(countdown_id(start, interval, every), "countdown", sample_rate())
     seg.silence(LEAD_IN_S)
     seg.events.append({"t": 0, "kind": "phase", "value": "countdown"})
-    lead = f"Ahora cuenta conmigo, en silencio, desde {start}."
+    lead = f"Ahora cuenta conmigo, en silencio, desde {number_text(start)[:-1].lower()}."
     seg.events.append({"t": seg.t(), "kind": "say", "text": lead})
     seg.add(synth(lead))
     seg.silence(1.5)
@@ -306,6 +344,9 @@ def main() -> None:
     OUT.mkdir(parents=True)
     TMP.mkdir(parents=True, exist_ok=True)
 
+    before = tts_openrouter.balance() if ENGINE == "openrouter" else None
+    if before is not None:
+        print(f"Voz: OpenRouter {tts_openrouter.MODEL} · {tts_openrouter.VOICE} · saldo ${before:.4f}")
     segments = {}
     for i, (sid, job) in enumerate(jobs, 1):
         print(f"[{i}/{len(jobs)}] {sid}", flush=True)
@@ -313,7 +354,7 @@ def main() -> None:
 
     total = sum(s["bytes"] for s in segments.values())
     manifest = {
-        "voice": VOICE,
+        "voice": VOICE if ENGINE == "piper" else f"{tts_openrouter.MODEL}:{tts_openrouter.VOICE}",
         "lengthScale": LENGTH_SCALE,
         "bitrate": BITRATE,
         "totalBytes": total,
@@ -322,6 +363,23 @@ def main() -> None:
     (OUT / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     minutes = sum(s["duration"] for s in segments.values()) / 60
     print(f"\nListo: {len(segments)} archivos, {minutes:.1f} min de voz, {total / 1e6:.1f} MB en total.")
+    if ENGINE == "openrouter":
+        st = tts_openrouter.stats
+        print(f"OpenRouter: {st['calls']} frases nuevas, {st['chars']} caracteres "
+              f"(≈ ${st['chars'] * tts_openrouter.PRICE_PER_CHAR:.2f}); el resto salió de la caché.")
+        after = tts_openrouter.balance()
+        if before is not None and after is not None:
+            print(f"Saldo: ${before:.4f} → ${after:.4f} (puede tardar unos minutos en reflejarse)")
+        # Clips raros: segundos por carácter muy distintos de la mediana (voz que lee de más o de menos).
+        # Solo frases (≥ 12 letras), sin repetir: en palabras sueltas la pausa final pesa demasiado.
+        rates = [(t, d / len(t)) for t, d in dict(DURATIONS).items() if len(t) >= 12]
+        if rates:
+            med = float(np.median([r for _, r in rates]))
+            odd = [(t, r / med) for t, r in rates if r > 2 * med or r < 0.4 * med]
+            for t, k in odd:
+                print(f"  REVISAR: «{t}» dura {k:.1f}× lo normal")
+    if OVERFLOWS:
+        print("AVISO: números que no cupieron ni acelerados (se recortaron):", ", ".join(OVERFLOWS))
     if total > 60e6:
         print("AVISO: se pasa del presupuesto de 60 MB. Baja BITRATE.")
 

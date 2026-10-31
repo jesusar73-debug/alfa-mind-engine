@@ -64,7 +64,7 @@ py -3.12 -m venv .venv
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | App en modo desarrollo |
-| `npm run build:audio` | Regenera **todos** los audios desde `content/scripts` |
+| `npm run build:audio` | Regenera **todos** los audios desde `content/scripts`. Solo pide a OpenRouter las frases nuevas o cambiadas (≈ $0.0008 por cada 10 caracteres); lo demás sale de `content/voice-cache/` |
 | `npm run verify:sync` | Mide la sincronía real voz ↔ timeline (límite 300 ms) |
 | `npm run build:icons` | Regenera los íconos |
 | `npm run build` | Compila para producción (`dist/`) |
@@ -83,7 +83,8 @@ Edita `days` en `content/levels.json`. El tracker se ajusta solo, sin regenerar 
 ```
 content/scripts/   guiones originales (JSON)
 content/levels.json, modules.json
-tools/             TTS (Piper), armado de audio, íconos, verificación
+tools/             voz (OpenRouter; Piper como respaldo), armado de audio, íconos, verificación
+content/voice-cache/  clips de voz ya pagados (para reconstruir sin volver a pagar)
 public/audio/      MP3 + WAV + manifest.json (timelines)
 src/audio/         motor: tono en vivo, voz por segmentos, timeline
 src/screens/       Inicio, Sesión, Progreso, Ajustes, Acerca de
@@ -94,6 +95,7 @@ tests/             Playwright
 
 ## 📜 Licencias
 
-- **Voz:** Piper `es_AR-daniela-high`. El dataset es OpenSLR 61 (Google), con licencia **CC BY-SA 4.0**: requiere dar crédito (ya está en "Acerca de"). El modelo se afinó desde la voz inglesa *lessac*, cuyo dataset tiene licencia de investigación. Si vas a cobrar por la app, revísalo con un abogado.
+- **Voz guía (desde v1.6):** ElevenLabs Eleven v4, voz "Matilda", generada con un plan de pago a través de OpenRouter. ElevenLabs permite el uso comercial del audio generado con planes de pago; **falta confirmar** que eso aplica igual a través de OpenRouter antes de cobrar por la app.
+- **Voz anterior (respaldo):** Piper `es_AR-daniela-high` (CC BY-SA 4.0, afinada desde *lessac*). Se usa con `AME_TTS=piper npm run build:audio`.
 - **Piper TTS:** GPL-3.0. Solo se usa en la laptop para generar los audios; no va dentro de la app.
 - **Guiones:** originales, escritos para este proyecto.

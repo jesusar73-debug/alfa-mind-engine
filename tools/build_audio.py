@@ -193,7 +193,18 @@ def build_phased(seg: Segment, data: dict) -> Segment:
         t = 0 if first else seg.t()
         seg.events.append({"t": t, "kind": "phase", "value": fase["fase"]})
         seg.events.append({"t": t, "kind": "chapter", "value": fase["nombre"]})
-        for frase in fase["frases"]:
+        frases = fase["frases"]
+        if fase.get("resto"):
+            # Si voz + pausas no caben hasta el fin de la fase, se acortan las pausas (no la voz),
+            # como mucho a la mitad, para que la fase siguiente empiece en su segundo exacto.
+            habla = sum(synth(f.get("voz", f["texto"]) if ENGINE == "piper" else f["texto"]).size for f in frases) / seg.sr
+            pausas = sum(f.get("pausa_ms", 0) for f in frases) / 1000
+            libre = fase["fin_s"] - seg.t() - habla
+            if pausas > 0 and libre < pausas:
+                k = max(0.5, libre / pausas)
+                print(f"  {seg.id}: pausas de '{fase['id']}' al {k * 100:.0f} % para que la fase quepa")
+                frases = [{**f, "pausa_ms": f.get("pausa_ms", 0) * k} for f in frases]
+        for frase in frases:
             add_frase(seg, frase)
         if seg.t() > fase["fin_s"] + 0.01:
             print(f"  AVISO {seg.id}: la voz de '{fase['id']}' termina {seg.t() - fase['fin_s']:.1f} s después de su fin")
@@ -209,7 +220,9 @@ def number_text(n: int) -> str:
     """Piper expande las cifras solo; ElevenLabs necesita las palabras (si no, puede leerlas en inglés)."""
     if ENGINE == "piper":
         return f"{n}."
-    w = tts_openrouter.numero_en_palabras(n)
+    # "Once" y "Quince" también son palabras inglesas (once, quince = membrillo): solas, la voz
+    # las leía en inglés. Con esta grafía solo se pueden leer en español (en pantalla no se ve).
+    w = {11: "ónse", 15: "kínse"}.get(n) or tts_openrouter.numero_en_palabras(n)
     return w[0].upper() + w[1:] + "."
 
 

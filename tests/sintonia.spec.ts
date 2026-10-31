@@ -43,7 +43,7 @@ test('Sintonía 10: fases en pantalla, ondas desde 2:00 y salida con rampa', asy
 
   // Tras el "Uno", la voz sigue: se ve el texto, no un "1" fijo.
   await seek(page, 3 * 60 + 30);
-  await expect(page.getByTestId('caption')).toContainText('ritmo lento y sereno', { timeout: 6000 });
+  await expect(page.getByTestId('caption')).toContainText(/profundo y tranquilo|ritmo lento y sereno/, { timeout: 6000 });
   await expect(page.getByTestId('big-number')).toHaveCount(0);
 
   // Slide y salida.

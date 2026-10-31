@@ -24,7 +24,7 @@ API = "https://openrouter.ai/api/v1"
 MODEL = "elevenlabs/eleven-v4"
 VOICE = "matilda"
 PREFIX = "[calm] "  # etiqueta de emoción de ElevenLabs: tono calmado, sin el susurro de [softly]
-TEMPO = 0.88  # 12 % más lento que su ritmo natural
+TEMPO = 0.82  # 18 % más lento que su ritmo natural (30-oct: Jesus la pidió más pausada)
 PRICE_PER_CHAR = 0.00008  # USD, precio de OpenRouter el 30-oct-2026 (solo para estimar)
 
 CACHE = ROOT / "content" / "voice-cache" / f"{MODEL.replace('/', '__')}__{VOICE}"
